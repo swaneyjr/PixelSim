@@ -1,0 +1,13 @@
+# Sample mac file for PixelSim
+#
+# set some geometrical/particle params
+/sensor/geo/glass 500 um
+/source/ang/cosmic
+#
+# need to call this after setting geometry
+# but before starting run
+/run/initialize
+#
+# configure a spectrum run
+/spectrum/path spectra/0 # sea level cosmics
+/spectrum/runN 10000
