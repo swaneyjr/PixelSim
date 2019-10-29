@@ -6,9 +6,9 @@
 static RootIO* fInstance = nullptr;
 
 RootIO::RootIO()
-{
-    fAnalysisManager = G4AnalysisManager::Instance();
-} 
+    :   fAnalysisManager(G4AnalysisManager::Instance()),
+        fParticles()
+{ } 
 
 RootIO::~RootIO()
 {
@@ -63,8 +63,9 @@ void RootIO::AddDigits(PixDigiCollection* dc)
 
 void RootIO::AddPrimary(G4PrimaryParticle* primary)
 {
-    G4String pname = primary->GetParticleDefinition()
-        ->GetParticleName();
+    const G4ParticleDefinition* pdef = primary->GetParticleDefinition();
+    G4int pID = pdef->GetParticleDefinitionID();
+    G4String pname = pdef->GetParticleName();
     G4double ke = primary->GetKineticEnergy();
     const G4ThreeVector pHat = primary->GetMomentumDirection();
 
@@ -72,12 +73,14 @@ void RootIO::AddPrimary(G4PrimaryParticle* primary)
     G4double phi = atan2(pHat.y(), pHat.x());
 
     // fill hist
-    G4int histID = fAnalysisManager
-        ->GetH1Id(pname);
-    if (histID == -1)
+    G4int histID;
+    if (fParticles.insert(pID).second)
         histID = fAnalysisManager
             ->CreateH1(pname, pname, 200, 0.1, 1000000, "MeV", "log");
-
+    else
+        histID = fAnalysisManager
+            ->GetH1Id(pname);
+        
     fAnalysisManager->FillH1(histID, ke);
 
     // fill ntuple

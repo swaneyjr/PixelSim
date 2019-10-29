@@ -6,6 +6,8 @@
 #include "g4root.hh"
 #include "G4PrimaryParticle.hh"
 
+#include <unordered_set>
+
 class RootIO
 {
     public:
@@ -29,6 +31,8 @@ class RootIO
         std::vector<G4int> fX;
         std::vector<G4int> fY;
         std::vector<G4int> fN;
+
+        std::unordered_set<G4int> fParticles;
 };
 
 

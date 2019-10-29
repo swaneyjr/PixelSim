@@ -19,14 +19,15 @@ class PixSensitiveDetector : public G4VSensitiveDetector
         inline void SetChargeSpread(G4double cs) { fChargeSpread = cs; }
         inline G4double GetChargeSpread() const { return fChargeSpread; }
 
-        // depth in volume hierarchy, not physical depth
-        static constexpr G4int DEPLETION_DEPTH = 5;
+    public: 
         static constexpr G4double DEFAULT_CHARGE_SPREAD = 5.0*um;
 
     private:
         PixHitsCollection* fHitsCollection;
         G4double fChargeSpread;
-
+        
+        // depth in volume hierarchy, not physical depth
+        static constexpr G4int DEPLETION_DEPTH = 5;
 };
 
 #endif

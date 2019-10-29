@@ -33,8 +33,10 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         void SetMaxTheta(G4double maxTheta);
         inline G4double GetMaxTheta() const { return fMaxTheta; };
 
+
+    public:
         static constexpr G4double DEFAULT_WORLD_SIZE = 5*mm;
-        static constexpr G4double DEFAULT_MAX_THETA = 90*deg;
+        static constexpr G4double DEFAULT_MAX_THETA = 85*deg;
         static constexpr G4int DEFAULT_RES_XY = 51;
         static constexpr G4double DEFAULT_PIX_XY = 1.12*um;
         static constexpr G4double DEFAULT_PIX_Z = 2.6*um;

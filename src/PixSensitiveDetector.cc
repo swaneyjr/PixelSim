@@ -27,12 +27,12 @@ G4bool PixSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     G4StepPoint* preStep = aStep->GetPreStepPoint();
     G4StepPoint* postStep = aStep->GetPostStepPoint();
 
-    G4cout << preStep->GetPosition().getZ()/um << " um ->" << postStep->GetPosition().getZ()/um << "um ";
+    //G4cout << preStep->GetPosition().getZ()/um << " um ->" << postStep->GetPosition().getZ()/um << "um ";
 
     const G4VTouchable* h = preStep->GetTouchable();
 
-    G4cout << "PV:" << h->GetVolume()->GetName() << " ";
-    G4cout << "e-:" << etot / (1.1*eV) << " ";
+    //G4cout << "PV:" << h->GetVolume()->GetName() << " ";
+    //G4cout << "e-:" << etot / (1.1*eV) << " ";
     G4bool depletion = (h->GetHistoryDepth() == DEPLETION_DEPTH); 
     G4int xLvl = 0;
     G4int yLvl = 1;
@@ -45,7 +45,7 @@ G4bool PixSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
     G4int pixX = h->GetReplicaNumber(xLvl);
     G4int pixY = h->GetReplicaNumber(yLvl);
-    G4cout << " x = " << pixX << " y = " << pixY << "\n";
+    //G4cout << " x = " << pixX << " y = " << pixY << "\n";
 
     if (depletion) {
         // assume perfect efficiency and minimal cross-talk

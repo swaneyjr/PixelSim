@@ -9,6 +9,7 @@
 #include "G4PVPlacement.hh"
 #include "G4PVReplica.hh"
 #include "G4SDManager.hh"
+#include "G4Region.hh"
 #include "G4VisAttributes.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -87,6 +88,10 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
     G4LogicalVolume* logicSensor = 
         new G4LogicalVolume(solidSensor, sensor_mat, "Sensor"); 
 
+    // add sensor as new region for low-energy propagation
+    G4Region* sensorRegion = new G4Region("sensorRegion");
+    logicSensor->SetRegion(sensorRegion);
+    sensorRegion->AddRootLogicalVolume(logicSensor);
 
     // create world
     G4Box* solidWorld = 

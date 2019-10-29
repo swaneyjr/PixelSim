@@ -130,7 +130,7 @@ void PixSpectrumMessenger::RunSpectrum(G4double val, G4bool tVal)
     G4RunManager* runManager = G4RunManager::GetRunManager();
     PixPrimaryGeneratorAction* pga = (PixPrimaryGeneratorAction*)
         runManager->GetUserPrimaryGeneratorAction();
-    PixPrimaryGenerator* ppg = pga->GetPrimaryGenerator();
+    PixPrimaryGenerator* ppg = pga->GetPrimaryGenerator(); 
     G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
 
     for (G4int i=0; i<nParticles; i++)
@@ -141,8 +141,9 @@ void PixSpectrumMessenger::RunSpectrum(G4double val, G4bool tVal)
         ppg->SetParticleDefinition(pd);
 
         G4String histName = fSpectrumPath + "/" + particles[i] + ".dat";
-        ppg->GetEneDist()
-            ->ArbEnergyHistoFile(histName);
+        ppg->GetEneDist()->SetEnergyDisType("Arb");
+        ppg->GetEneDist()->ArbEnergyHistoFile(histName);
+        ppg->GetEneDist()->ArbInterpolate("Exp");
 
         G4int np;
         if (tVal)
@@ -158,12 +159,10 @@ void PixSpectrumMessenger::RunSpectrum(G4double val, G4bool tVal)
             np = (G4int)(*(fluxes+i) * val / totalFlux);
         }
 
-        std::cout << *(particles+i) << ": " << np << "\n";
+        //G4cout << *(particles+i) << ": " << np << \n";
 
-        if ( np ) {
-            runManager->SetVerboseLevel(6);
+        if ( np )
             runManager->BeamOn(np); 
-        }
     }
 
     delete [] particles;

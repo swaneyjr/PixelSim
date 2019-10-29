@@ -1,15 +1,15 @@
-#include "G4RunManager.hh"
-#include "G4UImanager.hh"
-
-#include "G4VisExecutive.hh"
-#include "G4UIExecutive.hh"
-
 #include "PixDetectorConstruction.hh"
-#include "PixSpectrumMessenger.hh"
-#include "RootIO.hh"
-#include "QGSP_BERT.hh"
+#include "PixPhysicsList.hh"
 #include "PixActionInitialization.hh"
 
+#include "PixSpectrumMessenger.hh"
+#include "RootIO.hh"
+
+#include "G4RunManager.hh"
+#include "G4UImanager.hh"
+#include "G4VisExecutive.hh"
+#include "G4UIExecutive.hh"
+#include "G4PhysListFactory.hh"
 #include "G4SystemOfUnits.hh"
 #include "globals.hh"
 
@@ -35,8 +35,10 @@ int main(int argc, char** argv)
     G4RunManager* runManager = new G4RunManager;
 
     runManager->SetUserInitialization(new PixDetectorConstruction);
-    runManager->SetUserInitialization(new QGSP_BERT);
+    runManager->SetUserInitialization(new PixPhysicsList);
     runManager->SetUserInitialization(new PixActionInitialization);
+    
+    runManager->SetVerboseLevel(2);
 
     RootIO* root = RootIO::GetInstance();
 

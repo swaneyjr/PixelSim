@@ -1,5 +1,6 @@
 #include "PixSensorMessenger.hh"
 #include "PixDetectorConstruction.hh"
+#include "PixSensitiveDetector.hh"
 
 PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     : fDC(dc)
@@ -10,25 +11,29 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
 
     cmdResXY = new G4UIcmdWithAnInteger("/sensor/geo/res", this);
     cmdResXY->SetGuidance("Resolution of sensor (N x N)");
-    cmdResXY->SetParameterName("resolution", true, true);
+    cmdResXY->SetParameterName("resolution", true);
+    cmdResXY->SetDefaultValue(PixDetectorConstruction::DEFAULT_RES_XY);
     cmdResXY->AvailableForStates(G4State_PreInit);
 
     cmdPixXY = new G4UIcmdWithADoubleAndUnit("/sensor/geo/pixSize", this);
     cmdPixXY->SetGuidance("x and y dimensions of pixels");
-    cmdPixXY->SetParameterName("pixSize", true, true);
+    cmdPixXY->SetParameterName("pixSize", true);
     cmdPixXY->AvailableForStates(G4State_PreInit);
+    cmdPixXY->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_XY);
     cmdPixXY->SetDefaultUnit("um");
 
     cmdPixZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/pixDepth", this);
     cmdPixZ->SetGuidance("Depth of silicon substrate");
-    cmdPixZ->SetParameterName("pixDepth", true, true);
+    cmdPixZ->SetParameterName("pixDepth", true);
     cmdPixZ->AvailableForStates(G4State_PreInit);
+    cmdPixZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_Z);
     cmdPixZ->SetDefaultUnit("um");
  
     cmdGlassZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/glass", this);
     cmdGlassZ->SetGuidance("Thickness of lens");
-    cmdGlassZ->SetParameterName("glass", true, true);
+    cmdGlassZ->SetParameterName("glass", true);
     cmdGlassZ->AvailableForStates(G4State_PreInit);
+    cmdGlassZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_GLASS_Z);
     cmdGlassZ->SetDefaultUnit("mm");
 
     
@@ -37,14 +42,16 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     
     cmdPixDepl = new G4UIcmdWithADoubleAndUnit("/sensor/readout/depletion", this);
     cmdPixDepl->SetGuidance("Length of depletion region");
-    cmdPixDepl->SetParameterName("depletion", true, true);
+    cmdPixDepl->SetParameterName("depletion", true);
     cmdPixDepl->AvailableForStates(G4State_PreInit);
+    cmdPixDepl->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_DEPL);
     cmdPixDepl->SetDefaultUnit("um");
 
     cmdChargeSpread = new G4UIcmdWithADoubleAndUnit("/sensor/readout/chargeSpread", this);
     cmdChargeSpread->SetGuidance("Standard deviation of charge diffusion length");
     cmdChargeSpread->SetParameterName("chargeSpread", true, true);
     cmdChargeSpread->AvailableForStates(G4State_PreInit, G4State_Idle);
+    cmdChargeSpread->SetDefaultValue(PixSensitiveDetector::DEFAULT_CHARGE_SPREAD);
     cmdChargeSpread->SetDefaultUnit("um");
 
 }

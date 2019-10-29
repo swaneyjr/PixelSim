@@ -43,7 +43,8 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
 
     cmdAngGauss = new G4UIcmdWithADoubleAndUnit("/source/ang/gauss", this);
     cmdAngGauss->AvailableForStates(G4State_PreInit, G4State_Idle);
-    cmdAngGauss->SetParameterName("sigma", true, true);
+    cmdAngGauss->SetParameterName("sigma", true);
+    cmdAngGauss->SetDefaultValue(0.0);
     cmdAngGauss->SetDefaultUnit("deg");
     cmdAngGauss->SetGuidance("Gaussian angular spread with selected sigma");
     
@@ -53,8 +54,9 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
 
     cmdMaxTheta = new G4UIcmdWithADoubleAndUnit("/source/ang/maxTheta", this);
     cmdMaxTheta->SetGuidance("Maximum angle of incidence allowed (determines world size)");
-    cmdMaxTheta->SetParameterName("theta", true, true);
+    cmdMaxTheta->SetParameterName("theta", true);
     cmdMaxTheta->AvailableForStates(G4State_PreInit);
+    cmdMaxTheta->SetDefaultValue(PixDetectorConstruction::DEFAULT_MAX_THETA);
     cmdMaxTheta->SetDefaultUnit("deg");
 
     // energy
@@ -62,19 +64,21 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
     
     cmdEneMean = new G4UIcmdWithADoubleAndUnit("/source/ene/mean", this);
     cmdEneMean->AvailableForStates(G4State_PreInit, G4State_Idle);
-    cmdEneMean->SetParameterName("mu_E", true, true);
+    cmdEneMean->SetParameterName("mu_E", true);
+    cmdEneMean->SetDefaultValue(1*MeV);
     cmdEneMean->SetDefaultUnit("MeV");
     cmdEneMean->SetGuidance("Mean particle energy");
 
     cmdEneSigma = new G4UIcmdWithADoubleAndUnit("/source/ene/sigma", this);
     cmdEneSigma->AvailableForStates(G4State_PreInit, G4State_Idle);
-    cmdEneSigma->SetParameterName("sigma_E", true, true);
+    cmdEneSigma->SetParameterName("sigma_E", true);
+    cmdEneSigma->SetDefaultValue(0);
     cmdEneSigma->SetDefaultUnit("MeV");
     cmdEneSigma->SetGuidance("Spread in particle energy (default 0)");
 
     cmdEneHist = new G4UIcmdWithAString("/source/ene/hist", this);
     cmdEneHist->AvailableForStates(G4State_PreInit, G4State_Idle);
-    cmdEneHist->SetParameterName("file", false, false);
+    cmdEneHist->SetParameterName("file", false);
     cmdEneHist->SetGuidance("File with energy bins");
 }
 
@@ -147,9 +151,14 @@ void PixParticleMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
             ->SetEnergyDisType("Gauss");
     }
     else if (cmd == cmdEneHist)
+    {
+        fParticleGun->GetEneDist()
+            ->SetEnergyDisType("Arb");
         fParticleGun->GetEneDist()
             ->ArbEnergyHistoFile(values);
-
+        fParticleGun->GetEneDist()
+            ->ArbInterpolate("Exp"); 
+    }
 }
 
 G4String PixParticleMessenger::GetCurrentValue(G4UIcommand* cmd)
