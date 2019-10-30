@@ -76,7 +76,7 @@ void RootIO::AddPrimary(G4PrimaryParticle* primary)
     G4int histID;
     if (fParticles.insert(pID).second)
         histID = fAnalysisManager
-            ->CreateH1(pname, pname, 200, 0.1, 1000000, "MeV", "log");
+            ->CreateH1(pname, pname, 200, 0.1, 1000000, "MeV", "none", "log");
     else
         histID = fAnalysisManager
             ->GetH1Id(pname);

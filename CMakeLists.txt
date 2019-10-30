@@ -44,10 +44,11 @@ target_link_libraries(pixelSim ${Geant4_LIBRARIES})
 # relies on these scripts being in the current working directory.
 #
 
-file(GLOB_RECURSE MACROS ${PROJECT_SOURCE_DIR}/macros/*.mac)
+file(GLOB_RECURSE MACRO ${PROJECT_SOURCE_DIR}/macros/*.mac)
 file(GLOB_RECURSE DATA ${PROJECT_SOURCE_DIR}/spectra/*.dat)
+file(GLOB_RECURSE ANALYSES ${PROJECT_SOURCE_DIR}/analysis/*.py)
 
-foreach(ITEM ${MACROS} ${DATA})
+foreach(ITEM ${MACRO} ${DATA} ${ANALYSES})
   string(REPLACE ${PROJECT_SOURCE_DIR} "" ITEM ${ITEM})
   list(APPEND EXTRA_FILES ${ITEM})
 endforeach()
