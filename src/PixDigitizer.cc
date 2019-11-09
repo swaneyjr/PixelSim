@@ -18,12 +18,12 @@ PixDigitizer::PixDigitizer(G4String name)
 
     fResXY = dc->GetResXY();
 
-    fPixEnergies = new G4double[fResXY * fResXY]();
+    fPixElectrons = new G4int[fResXY * fResXY]();
 }
 
 PixDigitizer::~PixDigitizer()
 { 
-    delete [] fPixEnergies;
+    delete [] fPixElectrons;
 }
 
 void PixDigitizer::Digitize()
@@ -34,36 +34,46 @@ void PixDigitizer::Digitize()
 
     
     G4DigiManager* digiMan = G4DigiManager::GetDMpointer();
-    G4int sensorID = digiMan->GetHitsCollectionID("PixHitsCollection");
-    PixHitsCollection* hc = (PixHitsCollection*)
-        (digiMan->GetHitsCollection(sensorID));
+    
+    G4int depletionID = digiMan->GetHitsCollectionID("DepletionHC");
+    G4int substrateID = digiMan->GetHitsCollectionID("SubstrateHC");
 
-    if ( hc ) {
+    PixHitsCollection* depletionHC = (PixHitsCollection*)
+        (digiMan->GetHitsCollection(depletionID));
+    PixHitsCollection* substrateHC = (PixHitsCollection*)
+        (digiMan->GetHitsCollection(substrateID));
 
-        G4int nHits = hc->entries();
 
-        for (G4int i=0; i<nHits; i++)
+    if ( depletionHC && substrateHC ) {
+
+        for (const auto hc : {depletionHC, substrateHC})
         {
-            PixHit* hit = (*hc)[i];
 
-            G4int x = hit->GetX();
-            G4int y = hit->GetY();
-            G4double e = hit->GetE();
+            G4int nHits = hc->entries();
 
-            G4int index = (fResXY * y + x);
+            for (G4int i=0; i<nHits; i++)
+            {
+                PixHit* hit = (*hc)[i];
 
-            *(fPixEnergies + index) += e;
+                G4int x = hit->GetX();
+                G4int y = hit->GetY();
+                G4int n = hit->GetN();
+
+                G4int index = (fResXY * y + x);
+
+                *(fPixElectrons + index) += n;
+            }
+        
         }
         
-        // convert energies to electrons
+        // create digi
         G4int nPix = fResXY * fResXY;
         for (G4int index=0; index<nPix; index++)
         {
-            G4double eTot = *(fPixEnergies + index);
-            G4int nElectrons = (G4int) (eTot / fBandGap);
-            *(fPixEnergies + index) = 0;
+            G4int nTot = *(fPixElectrons + index);
+            *(fPixElectrons + index) = 0;
 
-            if (nElectrons == 0) continue;
+            if (nTot == 0) continue;
 
             G4int x = index % fResXY;
             G4int y = index / fResXY;
@@ -72,7 +82,7 @@ void PixDigitizer::Digitize()
 
             digi->SetX(x);
             digi->SetY(y);
-            digi->SetN(nElectrons);
+            digi->SetN(nTot);
 
             fDigiCollection->insert(digi);
         }

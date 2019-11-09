@@ -1,6 +1,5 @@
 #include "PixSensorMessenger.hh"
 #include "PixDetectorConstruction.hh"
-#include "PixSensitiveDetector.hh"
 
 PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     : fDC(dc)
@@ -39,7 +38,7 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     
     fReadoutDir = new G4UIdirectory("/sensor/readout/");
     fReadoutDir->SetGuidance("Pixel readout parameters");
-    
+
     cmdPixDepl = new G4UIcmdWithADoubleAndUnit("/sensor/readout/depletion", this);
     cmdPixDepl->SetGuidance("Length of depletion region");
     cmdPixDepl->SetParameterName("depletion", true);
@@ -47,12 +46,31 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdPixDepl->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_DEPL);
     cmdPixDepl->SetDefaultUnit("um");
 
-    cmdChargeSpread = new G4UIcmdWithADoubleAndUnit("/sensor/readout/chargeSpread", this);
-    cmdChargeSpread->SetGuidance("Standard deviation of charge diffusion length");
-    cmdChargeSpread->SetParameterName("chargeSpread", true, true);
-    cmdChargeSpread->AvailableForStates(G4State_PreInit, G4State_Idle);
-    cmdChargeSpread->SetDefaultValue(PixSensitiveDetector::DEFAULT_CHARGE_SPREAD);
-    cmdChargeSpread->SetDefaultUnit("um");
+    cmdDiffModel = new G4UIcmdWithAString("/sensor/readout/diffusionModel", this);
+    cmdDiffModel->SetGuidance("Model for distribution of electrons created in the substrate.");
+    cmdDiffModel->SetCandidates("MC Isolation");
+    cmdDiffModel->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFFUSION_MODEL);
+
+    cmdDiffLen = new G4UIcmdWithADoubleAndUnit("/sensor/readout/diffusion", this);
+    cmdDiffLen->SetGuidance("Electron diffusion length");
+    cmdDiffLen->SetParameterName("L_diff", true);
+    cmdDiffLen->AvailableForStates(G4State_PreInit);
+    cmdDiffLen->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFFUSION_LENGTH);
+    cmdDiffLen->SetDefaultUnit("um");
+
+    cmdDTI = new G4UIcmdWithADoubleAndUnit("/sensor/readout/dti", this);
+    cmdDTI->SetGuidance("Depth of Deep Trench Isolation (DTI)");
+    cmdDTI->SetParameterName("depth", true);
+    cmdDTI->AvailableForStates(G4State_PreInit);
+    cmdDTI->SetDefaultValue(PixDetectorConstruction::DEFAULT_DTI_DEPTH);
+    cmdDTI->SetDefaultUnit("um");
+
+    cmdMCStep = new G4UIcmdWithADoubleAndUnit("/sensor/readout/mcStep", this);
+    cmdMCStep->SetGuidance("Size of steps in Monte Carlo diffusion of charge");
+    cmdMCStep->SetParameterName("stepSize", true);
+    cmdMCStep->AvailableForStates(G4State_PreInit);
+    cmdMCStep->SetDefaultValue(PixDetectorConstruction::DEFAULT_MC_STEP);
+    cmdMCStep->SetDefaultUnit("nm");
 
 }
 
@@ -68,7 +86,10 @@ PixSensorMessenger::~PixSensorMessenger()
     delete fReadoutDir;
     
     delete cmdPixDepl;
-    delete cmdChargeSpread;
+    delete cmdDiffModel;
+    delete cmdDiffLen;
+    delete cmdDTI;
+    delete cmdMCStep;
 
 }
 
@@ -85,8 +106,14 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 
     else if (cmd == cmdPixDepl)
         fDC->SetPixDepl(cmdPixDepl->GetNewDoubleValue(values));
-    else if (cmd == cmdChargeSpread && fSD)
-        fSD->SetChargeSpread(cmdChargeSpread->GetNewDoubleValue(values));
+    else if (cmd == cmdDiffModel)
+        fDC->SetDiffusionModel(values);
+    else if (cmd == cmdDiffLen)
+        fDC->SetDiffusionLength(cmdDiffLen->GetNewDoubleValue(values));
+    else if (cmd == cmdDTI)
+        fDC->SetDTIDepth(cmdDiffLen->GetNewDoubleValue(values));
+    else if (cmd == cmdMCStep)
+        fDC->SetMCStep(cmdDiffLen->GetNewDoubleValue(values));
      
 }
 
@@ -99,18 +126,20 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
         return cmd->ConvertToString(fDC->GetPixXY());
     else if (cmd == cmdPixZ)
         return cmd->ConvertToString(fDC->GetPixZ());
-    else if (cmd == cmdPixDepl)
-        return cmd->ConvertToString(fDC->GetPixDepl());
     else if (cmd == cmdGlassZ)
         return cmd->ConvertToString(fDC->GetGlassZ());
-    else if (cmd == cmdChargeSpread)
-    {
-        if(fSD)
-            return cmd->ConvertToString(fSD->GetChargeSpread());
-        else
-            return "-1";
-    }
-    
+
+    else if (cmd == cmdPixDepl)
+        return cmd->ConvertToString(fDC->GetPixDepl());
+    else if (cmd == cmdDiffModel)
+        return fDC->GetDiffusionModel();
+    else if (cmd == cmdDiffLen)
+        return cmd->ConvertToString(fDC->GetDiffusionLength());
+    else if (cmd == cmdDTI)
+        return cmd->ConvertToString(fDC->GetDTIDepth());
+    else if (cmd == cmdMCStep)
+        return cmd->ConvertToString(fDC->GetMCStep());
+
     else return "";
 }
 

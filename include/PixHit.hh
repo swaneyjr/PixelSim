@@ -19,18 +19,18 @@ class PixHit : public G4VHit
         inline void operator delete(void*);
 
         void SetX(G4int val) { fX = val; };
-        G4int GetX() { return fX; };
+        G4int GetX() const { return fX; };
 
         void SetY(G4int val) { fY = val; };
-        G4int GetY() { return fY; };
+        G4int GetY() const { return fY; };
 
-        void SetE(G4double val) { fE = val; };
-        G4double GetE() { return fE; };
+        void SetN(G4int val) { fN = val; };
+        G4int GetN() const { return fN; };
 
     private:
         G4int fX;
         G4int fY;
-        G4double fE;
+        G4int fN;
 };
 
 typedef G4THitsCollection<PixHit> PixHitsCollection;

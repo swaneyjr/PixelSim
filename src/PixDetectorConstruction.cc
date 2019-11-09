@@ -1,6 +1,9 @@
 #include "PixDetectorConstruction.hh"
 
-#include "PixSensitiveDetector.hh"
+#include "PixVSensitiveDetector.hh"
+#include "PixDepletionSD.hh"
+#include "PixMonteCarloSD.hh"
+#include "PixIsolationSD.hh"
 #include "PixSensorMessenger.hh"
 
 #include "G4NistManager.hh"
@@ -21,9 +24,12 @@ PixDetectorConstruction::PixDetectorConstruction()
         fMaxTheta(DEFAULT_MAX_THETA),
         fResXY(DEFAULT_RES_XY),
         fPixXY(DEFAULT_PIX_XY),
-        fPixZ(DEFAULT_PIX_Z),
-        fPixDepl(DEFAULT_PIX_DEPL),
+        fPixZ(DEFAULT_PIX_Z), 
         fGlassZ(DEFAULT_GLASS_Z),
+        fPixDepl(DEFAULT_PIX_DEPL),
+        fDiffusionModel(DEFAULT_DIFFUSION_MODEL),
+        fDiffusionLength(DEFAULT_DIFFUSION_LENGTH),
+        fMCStep(DEFAULT_MC_STEP),
         fSensorMessenger(new PixSensorMessenger(this))
 { }
 
@@ -34,15 +40,32 @@ PixDetectorConstruction::~PixDetectorConstruction()
 
 void PixDetectorConstruction::ConstructSDandField()
 {
-    G4String sdName = "/Pix/PixSD";
-    PixSensitiveDetector* pixSD = 
-        new PixSensitiveDetector(sdName, "PixHitsCollection");
+     
+    // add depletion zone
+    G4String depletionSDName = "/Pix/DepletionSD";
+    G4String depletionHCName = "DepletionHC";
+    
+    PixVSensitiveDetector* depletionSD = 
+        new PixDepletionSD(depletionSDName, depletionHCName, this);
+    G4SDManager::GetSDMpointer()->AddNewDetector(depletionSD);
+    SetSensitiveDetector("Depletion", depletionSD, true);
 
-    G4SDManager::GetSDMpointer()->AddNewDetector(pixSD);
-    SetSensitiveDetector("Pix", pixSD, true);
-    SetSensitiveDetector("DeplRegion", pixSD, true);
 
-    fSensorMessenger->SetSensitiveDetector(pixSD);
+    // add diffusion for substrate
+    G4String substrateSDName = "/Pix/SubstrateSD";
+    G4String substrateHCName = "SubstrateHC";
+
+    PixVSensitiveDetector* substrateSD;
+
+    if (fDiffusionModel == "MC")
+        substrateSD = new PixMonteCarloSD(substrateSDName, substrateHCName, this);
+    else if (fDiffusionModel == "Isolation")
+        substrateSD = new PixIsolationSD(substrateSDName, substrateHCName, this);
+    else return;
+    
+    G4SDManager::GetSDMpointer()->AddNewDetector(substrateSD); 
+    SetSensitiveDetector("Substrate", substrateSD, true);
+
 }
 
 
@@ -64,14 +87,23 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
     G4LogicalVolume* logicPix = 
         new G4LogicalVolume(solidPix, sensor_mat, "Pix");
 
-    G4Box* solidDepl = new G4Box("DeplRegion",
+    G4Box* solidDepl = new G4Box("Depletion",
             0.5*fPixXY,
             0.5*fPixXY,
             0.5*fPixDepl);
 
     G4LogicalVolume* logicDepl = 
-        new G4LogicalVolume(solidDepl, sensor_mat, "DeplRegion");
+        new G4LogicalVolume(solidDepl, sensor_mat, "Depletion");
     
+    
+    G4Box* solidSubstrate = new G4Box("Substrate",
+            0.5*fPixXY,
+            0.5*fPixXY,
+            0.5*(fPixZ - fPixDepl));
+    
+    G4LogicalVolume* logicSubstrate =
+        new G4LogicalVolume(solidSubstrate, sensor_mat, "Substrate");
+
     G4Box* solidRow = new G4Box("Row", 
             0.5*fPixXY*fResXY, 
             0.5*fPixXY, 
@@ -113,6 +145,8 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
                 "Envelope");
 
     // now make physical placements
+    
+    // put depletion and substrate in each pixel
     new G4PVPlacement(0,
             G4ThreeVector(0, 0, 0.5*(fPixZ - fPixDepl)),
             logicDepl,
@@ -121,8 +155,18 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
             false,
             0,
             checkOverlaps);
+
+    new G4PVPlacement(0,
+            G4ThreeVector(0, 0, -0.5*fPixDepl),
+            logicSubstrate,
+            "SubstratePV",
+            logicPix,
+            false,
+            0,
+            checkOverlaps);
     
 
+    // make 2D grid of pixels
     new G4PVReplica("PixPV",
             logicPix,
             logicRow,
@@ -160,6 +204,7 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
         G4LogicalVolume* logicGlass =
             new G4LogicalVolume(solidGlass, glass_mat, "Glass");
 
+        // make transparent
         G4VisAttributes glassAttr = G4VisAttributes();
         glassAttr.SetColor(0.8, 0.8, 0.8, 0.3);
 

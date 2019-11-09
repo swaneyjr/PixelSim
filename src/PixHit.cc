@@ -6,7 +6,7 @@ PixHit::PixHit()
     :   G4VHit(),
         fX(-1),
         fY(-1),
-        fE(0.0)
+        fN(0.0)
 { }
 
 PixHit::PixHit(const PixHit& hit)
@@ -14,7 +14,7 @@ PixHit::PixHit(const PixHit& hit)
 {
     fX = hit.fX;
     fY = hit.fY;
-    fE = hit.fE;
+    fN = hit.fN;
 }
 
 PixHit::~PixHit()
@@ -24,7 +24,7 @@ const PixHit& PixHit::operator=(const PixHit& hit)
 {
     fX = hit.fX;
     fY = hit.fY;
-    fE = hit.fE;
+    fN = hit.fN;
 
     return *this;
 }

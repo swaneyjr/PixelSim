@@ -15,12 +15,13 @@ PixEventAction::PixEventAction()
 }
 
 PixEventAction::~PixEventAction()
-{ 
-    delete fDigitizer;
-}
-
-void PixEventAction::BeginOfEventAction(const G4Event*)
 { }
+
+void PixEventAction::BeginOfEventAction(const G4Event* anEvent)
+{ 
+    G4int evtID = anEvent->GetEventID();
+    std::cout << "Event: " << evtID << "\r";
+}
 
 void PixEventAction::EndOfEventAction(const G4Event* anEvent)
 { 

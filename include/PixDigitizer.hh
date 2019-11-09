@@ -16,11 +16,9 @@ class PixDigitizer : public G4VDigitizerModule
 
     private:
         PixDigiCollection* fDigiCollection;
-        G4double* fPixEnergies;
+        G4int* fPixElectrons;
 
-        G4int fResXY;
-        
-        const G4double fBandGap = 1.1*eV;
+        G4int fResXY; 
 };
 
 #endif

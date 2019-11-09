@@ -4,10 +4,10 @@
 #include "G4UImessenger.hh"
 #include "G4UIdirectory.hh"
 #include "G4UIcmdWithAnInteger.hh"
+#include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWithAString.hh"
 #include "globals.hh"
-
-#include "PixSensitiveDetector.hh"
 
 class G4UIcommand;
 class PixDetectorConstruction;
@@ -21,12 +21,8 @@ class PixSensorMessenger : public G4UImessenger
         virtual void SetNewValue(G4UIcommand* cmd, G4String newValues);
         virtual G4String GetCurrentValue(G4UIcommand* cmd);
 
-        inline void SetSensitiveDetector(PixSensitiveDetector* sd) { fSD = sd; };
-        inline PixSensitiveDetector* GetSensitiveDetector() const { return fSD; };
-
     private:
         PixDetectorConstruction* fDC;
-        PixSensitiveDetector* fSD;
         
         // geometry
         G4UIdirectory* fGeometryDir;
@@ -40,8 +36,11 @@ class PixSensorMessenger : public G4UImessenger
         G4UIdirectory* fReadoutDir;
 
         G4UIcmdWithADoubleAndUnit* cmdPixDepl;
-        G4UIcmdWithADoubleAndUnit* cmdChargeSpread;
-        G4UIcmdWithADoubleAndUnit* cmdMaxTheta;
+        G4UIcmdWithAString* cmdDiffModel;
+        G4UIcmdWithADoubleAndUnit* cmdDiffLen;
+        G4UIcmdWithADoubleAndUnit* cmdDTI;
+        G4UIcmdWithADoubleAndUnit* cmdMCStep;
+
 };
 
 #endif
