@@ -11,10 +11,10 @@ class PixDetectorConstruction;
 class PixVSensitiveDetector : public G4VSensitiveDetector
 {
     public:
-        PixVSensitiveDetector(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc);
+        PixVSensitiveDetector(const G4String& name, const G4String& hcName);
         virtual ~PixVSensitiveDetector();
 
-        void Initialize(G4HCofThisEvent* hitCollection);
+        virtual void Initialize(G4HCofThisEvent* hitCollection);
         G4bool ProcessHits(G4Step* step, G4TouchableHistory*);
         virtual void EndOfEvent(G4HCofThisEvent* hitCollection);
 
@@ -26,7 +26,6 @@ class PixVSensitiveDetector : public G4VSensitiveDetector
 
     protected:
         PixHitsCollection* fHitsCollection;
-        PixDetectorConstruction* fDC;
 
     private:
         static constexpr G4double SI_BAND_GAP = 1.12*eV;

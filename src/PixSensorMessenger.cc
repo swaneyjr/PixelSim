@@ -65,31 +65,68 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdDTI->SetDefaultValue(PixDetectorConstruction::DEFAULT_DTI_DEPTH);
     cmdDTI->SetDefaultUnit("um");
 
-    cmdMCStep = new G4UIcmdWithADoubleAndUnit("/sensor/readout/mcStep", this);
-    cmdMCStep->SetGuidance("Size of steps in Monte Carlo diffusion of charge");
-    cmdMCStep->SetParameterName("stepSize", true);
-    cmdMCStep->AvailableForStates(G4State_PreInit);
-    cmdMCStep->SetDefaultValue(PixDetectorConstruction::DEFAULT_MC_STEP);
-    cmdMCStep->SetDefaultUnit("nm");
+    cmdDiffStep = new G4UIcmdWithADoubleAndUnit("/sensor/readout/diffStep", this);
+    cmdDiffStep->SetGuidance("Size of steps in Monte Carlo diffusion of charge");
+    cmdDiffStep->SetParameterName("stepSize", true);
+    cmdDiffStep->AvailableForStates(G4State_PreInit);
+    cmdDiffStep->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFF_STEP);
+    cmdDiffStep->SetDefaultUnit("nm");
+
+
+    fFastMCDir = new G4UIdirectory("/sensor/fastMC/");
+    fFastMCDir->SetGuidance("Parameters for pre-calculating the distribution of diffused charge.");
+    
+    cmdInterpolation = new G4UIcmdWithAString("/sensor/fastMC/interpolation", this);
+    cmdInterpolation->SetGuidance("Interpolation for 3D grid of diffusion distributions.");
+    cmdInterpolation->SetGuidance("If 'Off', no grid is calculated, and each electron is diffused in the simulation");
+    cmdInterpolation->SetParameterName("method", true);
+    cmdInterpolation->AvailableForStates(G4State_PreInit);
+    cmdInterpolation->SetCandidates("Nearest Linear Off");
+    cmdInterpolation->SetDefaultValue(PixDetectorConstruction::DEFAULT_FAST_MC_INTERPOLATION);
+    
+    cmdGridSpacing = new G4UIcmdWithADoubleAndUnit("/sensor/fastMC/gridSpacing", this);
+    cmdGridSpacing->SetGuidance("Maximum distance between grid points");
+    cmdGridSpacing->SetParameterName("dxyz", true);
+    cmdGridSpacing->AvailableForStates(G4State_PreInit);
+    cmdGridSpacing->SetDefaultValue(PixDetectorConstruction::DEFAULT_FAST_MC_GRID_SPACING);
+    cmdGridSpacing->SetDefaultUnit("nm");
+
+    cmdMaxSpread = new G4UIcmdWithAnInteger("/sensor/fastMC/maxSpread", this);
+    cmdMaxSpread->SetGuidance("Maximum distance in pixels for which the diffusion distribution is tracked");
+    cmdMaxSpread->SetParameterName("dpix", true);
+    cmdMaxSpread->AvailableForStates(G4State_PreInit);
+    cmdMaxSpread->SetDefaultValue(PixDetectorConstruction::DEFAULT_FAST_MC_MAX_SPREAD);
+
+    cmdSampleSize = new G4UIcmdWithAnInteger("/sensor/fastMC/sampleSize", this);
+    cmdSampleSize->SetGuidance("Number of electrons to simulate at each grid point");
+    cmdSampleSize->SetParameterName("N", true);
+    cmdSampleSize->AvailableForStates(G4State_PreInit);
+    cmdSampleSize->SetDefaultValue(PixDetectorConstruction::DEFAULT_FAST_MC_SAMPLE_SIZE);
 
 }
 
 PixSensorMessenger::~PixSensorMessenger()
-{
-    delete fGeometryDir;
-    
+{    
     delete cmdResXY;
     delete cmdPixXY;
     delete cmdPixZ; 
     delete cmdGlassZ;
 
-    delete fReadoutDir;
+    delete fGeometryDir; 
     
     delete cmdPixDepl;
     delete cmdDiffModel;
     delete cmdDiffLen;
     delete cmdDTI;
-    delete cmdMCStep;
+    delete cmdDiffStep;
+
+    delete fReadoutDir;
+
+    delete cmdInterpolation;
+    delete cmdGridSpacing;
+    delete cmdMaxSpread;
+    delete cmdSampleSize;
+    
 
 }
 
@@ -112,9 +149,19 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
         fDC->SetDiffusionLength(cmdDiffLen->GetNewDoubleValue(values));
     else if (cmd == cmdDTI)
         fDC->SetDTIDepth(cmdDiffLen->GetNewDoubleValue(values));
-    else if (cmd == cmdMCStep)
-        fDC->SetMCStep(cmdDiffLen->GetNewDoubleValue(values));
+    else if (cmd == cmdDiffStep)
+        fDC->SetDiffStep(cmdDiffStep->GetNewDoubleValue(values));
      
+    else if (cmd == cmdInterpolation)
+        fDC->SetFastMCInterpolation(values);
+    else if (cmd == cmdGridSpacing)
+        fDC->SetFastMCGridSpacing(cmdGridSpacing->GetNewDoubleValue(values));
+    else if (cmd == cmdMaxSpread)
+        fDC->SetFastMCMaxSpread(cmdMaxSpread->GetNewIntValue(values));
+    else if (cmd == cmdSampleSize)
+        fDC->SetFastMCSampleSize(cmdSampleSize->GetNewIntValue(values));
+
+
 }
 
 G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
@@ -137,8 +184,17 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
         return cmd->ConvertToString(fDC->GetDiffusionLength());
     else if (cmd == cmdDTI)
         return cmd->ConvertToString(fDC->GetDTIDepth());
-    else if (cmd == cmdMCStep)
-        return cmd->ConvertToString(fDC->GetMCStep());
+    else if (cmd == cmdDiffStep)
+        return cmd->ConvertToString(fDC->GetDiffStep());
+
+    else if (cmd == cmdInterpolation)
+        return fDC->GetFastMCInterpolation();
+    else if (cmd == cmdGridSpacing)
+        return cmd->ConvertToString(fDC->GetFastMCGridSpacing());
+    else if (cmd == cmdMaxSpread)
+        return cmd->ConvertToString(fDC->GetFastMCMaxSpread());
+    else if (cmd == cmdSampleSize)
+        return cmd->ConvertToString(fDC->GetFastMCSampleSize());
 
     else return "";
 }

@@ -2,8 +2,8 @@
 
 #include "PixHit.hh"
 
-PixDepletionSD::PixDepletionSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
-    :   PixVSensitiveDetector(name, hcName, dc)
+PixDepletionSD::PixDepletionSD(const G4String& name, const G4String& hcName)
+    :   PixVSensitiveDetector(name, hcName)
 { }
 
 PixDepletionSD::~PixDepletionSD()

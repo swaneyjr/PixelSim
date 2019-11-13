@@ -39,7 +39,15 @@ class PixSensorMessenger : public G4UImessenger
         G4UIcmdWithAString* cmdDiffModel;
         G4UIcmdWithADoubleAndUnit* cmdDiffLen;
         G4UIcmdWithADoubleAndUnit* cmdDTI;
-        G4UIcmdWithADoubleAndUnit* cmdMCStep;
+        G4UIcmdWithADoubleAndUnit* cmdDiffStep;
+
+        // monte carlo
+        G4UIdirectory* fFastMCDir;
+ 
+        G4UIcmdWithAString* cmdInterpolation;
+        G4UIcmdWithADoubleAndUnit* cmdGridSpacing;
+        G4UIcmdWithAnInteger* cmdMaxSpread;
+        G4UIcmdWithAnInteger* cmdSampleSize; 
 
 };
 

@@ -8,8 +8,11 @@
 #include <math.h>
 
 PixIsolationSD::PixIsolationSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
-    :   PixVSensitiveDetector(name, hcName, dc)
-{ }
+    :   PixVSensitiveDetector(name, hcName)
+{ 
+    fDiffusionLength = dc->GetDiffusionLength();
+    fSubstrateDepth = dc->GetPixZ() - dc->GetPixDepl();
+}
 
 PixIsolationSD::~PixIsolationSD()
 { }
@@ -19,11 +22,9 @@ void PixIsolationSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, 
     // collection efficiency can be reduced to a simple
     // analytical result
 
-    G4double zdep = (xi.z() + xf.z()) / 2;
-    G4double ztot = fDC->GetPixZ() - fDC->GetPixDepl();
-    G4double diffLen = fDC->GetDiffusionLength();
+    G4double zdep = fSubstrateDepth / 2 - (xi.z() + xf.z()) / 2;
 
-    G4double eff = cosh(zdep/diffLen) / cosh(ztot/diffLen);
+    G4double eff = cosh(zdep/fDiffusionLength) / cosh(fSubstrateDepth/fDiffusionLength);
     G4int nCollected = 0;
 
     // makeshift binomial

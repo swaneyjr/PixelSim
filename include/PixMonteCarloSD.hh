@@ -3,6 +3,8 @@
 
 #include "PixVSensitiveDetector.hh"
 
+class PixMonteCarlo;
+
 class PixMonteCarloSD : public PixVSensitiveDetector
 {
     public:
@@ -14,6 +16,14 @@ class PixMonteCarloSD : public PixVSensitiveDetector
                G4int pixY,
                G4ThreeVector xi, 
                G4ThreeVector xf);
+
+    private:
+        PixMonteCarlo* fMC;
+        G4int* fPixElectrons;
+
+        G4int fRes;
+
+
 
 };
 

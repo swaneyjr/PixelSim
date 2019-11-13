@@ -42,8 +42,23 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         inline void SetDTIDepth(G4double val) { fDTI = val; };
         inline G4double GetDTIDepth() const { return fDTI; }; 
 
-        inline void SetMCStep(G4double val) { fMCStep = val; };
-        inline G4double GetMCStep() const { return fMCStep; };
+        inline void SetDiffStep(G4double val) { fDiffStep = val; };
+        inline G4double GetDiffStep() const { return fDiffStep; };
+
+
+        // Monte Carlo interpolation
+        inline void SetFastMCInterpolation(G4String val) { fFastMCInterpolation = val; };
+        inline G4String GetFastMCInterpolation() const { return fFastMCInterpolation; };
+
+        inline void SetFastMCSampleSize(G4int val) { fFastMCSampleSize = val; };
+        inline G4int GetFastMCSampleSize() const { return fFastMCSampleSize; };
+
+        inline void SetFastMCMaxSpread(G4int val) { fFastMCMaxSpread = val; };
+        inline G4int GetFastMCMaxSpread() const { return fFastMCMaxSpread; };
+
+        inline void SetFastMCGridSpacing(G4double val) { fFastMCGridSpacing = val; };
+        inline G4double GetFastMCGridSpacing() const { return fFastMCGridSpacing; };
+
 
         void SetMaxTheta(G4double maxTheta);
         inline G4double GetMaxTheta() const { return fMaxTheta; };
@@ -61,7 +76,13 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         inline static const G4String DEFAULT_DIFFUSION_MODEL = "Isolation";
         static constexpr G4double DEFAULT_DIFFUSION_LENGTH = 5.0*um;
         static constexpr G4double DEFAULT_DTI_DEPTH = 1.8*um; 
-        static constexpr G4double DEFAULT_MC_STEP = 50*nm;
+        static constexpr G4double DEFAULT_DIFF_STEP = 50*nm;
+
+        inline static const G4String DEFAULT_FAST_MC_INTERPOLATION = "Off";
+        static constexpr G4int DEFAULT_FAST_MC_SAMPLE_SIZE = 100000;
+        static constexpr G4int DEFAULT_FAST_MC_MAX_SPREAD = 7;
+        static constexpr G4double DEFAULT_FAST_MC_GRID_SPACING = 100*nm;
+
                 
     private:
         G4double fWorldSize;
@@ -76,7 +97,12 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         G4String fDiffusionModel;
         G4double fDiffusionLength;
         G4double fDTI;
-        G4double fMCStep;
+        G4double fDiffStep;
+
+        G4String fFastMCInterpolation;
+        G4int fFastMCSampleSize;
+        G4int fFastMCMaxSpread;
+        G4double fFastMCGridSpacing;
         
         PixSensorMessenger* fSensorMessenger;
 

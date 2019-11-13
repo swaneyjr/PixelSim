@@ -29,7 +29,11 @@ PixDetectorConstruction::PixDetectorConstruction()
         fPixDepl(DEFAULT_PIX_DEPL),
         fDiffusionModel(DEFAULT_DIFFUSION_MODEL),
         fDiffusionLength(DEFAULT_DIFFUSION_LENGTH),
-        fMCStep(DEFAULT_MC_STEP),
+        fDiffStep(DEFAULT_DIFF_STEP),
+        fFastMCInterpolation(DEFAULT_FAST_MC_INTERPOLATION),
+        fFastMCSampleSize(DEFAULT_FAST_MC_SAMPLE_SIZE),
+        fFastMCMaxSpread(DEFAULT_FAST_MC_MAX_SPREAD),
+        fFastMCGridSpacing(DEFAULT_FAST_MC_GRID_SPACING),
         fSensorMessenger(new PixSensorMessenger(this))
 { }
 
@@ -46,7 +50,7 @@ void PixDetectorConstruction::ConstructSDandField()
     G4String depletionHCName = "DepletionHC";
     
     PixVSensitiveDetector* depletionSD = 
-        new PixDepletionSD(depletionSDName, depletionHCName, this);
+        new PixDepletionSD(depletionSDName, depletionHCName);
     G4SDManager::GetSDMpointer()->AddNewDetector(depletionSD);
     SetSensitiveDetector("Depletion", depletionSD, true);
 

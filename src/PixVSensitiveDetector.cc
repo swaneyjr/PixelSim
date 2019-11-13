@@ -12,11 +12,9 @@
 
 #include <math.h>
 
-PixVSensitiveDetector::PixVSensitiveDetector(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
+PixVSensitiveDetector::PixVSensitiveDetector(const G4String& name, const G4String& hcName)
     :   G4VSensitiveDetector(name),
-        fHitsCollection(nullptr),
-        fDC(dc)
-
+        fHitsCollection(nullptr)
 {
     collectionName.insert(hcName);
 }
@@ -38,16 +36,12 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     G4ThreeVector xi = aStep->GetPreStepPoint()->GetPosition();
     G4ThreeVector xf = aStep->GetPostStepPoint()->GetPosition();  
     
-    G4ThreeVector substrateXYZ = G4ThreeVector(
-            fDC->GetPixXY(),
-            fDC->GetPixXY(),
-            fDC->GetPixZ() - fDC->GetPixDepl());
     const G4AffineTransform* localTransform =
         h->GetHistory()->GetPtrTopTransform();
 
     // depletion region is the xy plane
-    G4ThreeVector xiLocal = substrateXYZ/2 - localTransform->TransformPoint(xi);
-    G4ThreeVector xfLocal = substrateXYZ/2 - localTransform->TransformPoint(xf); 
+    G4ThreeVector xiLocal = localTransform->TransformPoint(xi);
+    G4ThreeVector xfLocal = localTransform->TransformPoint(xf); 
 
     // now handle electron collection
     G4int nElectrons = (G4int)(etot/SI_BAND_GAP);

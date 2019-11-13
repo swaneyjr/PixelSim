@@ -6,7 +6,7 @@
 class PixDepletionSD : public PixVSensitiveDetector
 {
     public:
-        PixDepletionSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc);
+        PixDepletionSD(const G4String& name, const G4String& hcName);
         virtual ~PixDepletionSD();
 
         void CollectElectrons(G4int nElectrons,
