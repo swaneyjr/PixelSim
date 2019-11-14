@@ -45,10 +45,11 @@ target_link_libraries(pixelSim ${Geant4_LIBRARIES})
 #
 
 file(GLOB_RECURSE MACRO ${PROJECT_SOURCE_DIR}/macros/*.mac)
-file(GLOB_RECURSE DATA ${PROJECT_SOURCE_DIR}/spectra/*.dat)
+file(GLOB_RECURSE SPECTRA ${PROJECT_SOURCE_DIR}/data/spectra/*.dat)
 file(GLOB_RECURSE ANALYSES ${PROJECT_SOURCE_DIR}/analysis/*.py)
 
-foreach(ITEM ${MACRO} ${DATA} ${ANALYSES})
+
+foreach(ITEM ${MACRO} ${SPECTRA} ${ANALYSES})
   string(REPLACE ${PROJECT_SOURCE_DIR} "" ITEM ${ITEM})
   list(APPEND EXTRA_FILES ${ITEM})
 endforeach()
@@ -66,6 +67,7 @@ endforeach()
 # For internal Geant4 use - but has no effect if you build this
 # example standalone
 #
+add_custom_target(diffusionDir ALL COMMAND ${CMAKE_COMMAND} -E make_directory diffusion)
 add_custom_target(PixelSim DEPENDS pixelSim)
 
 #----------------------------------------------------------------------------

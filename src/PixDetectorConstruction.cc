@@ -34,6 +34,7 @@ PixDetectorConstruction::PixDetectorConstruction()
         fFastMCSampleSize(DEFAULT_FAST_MC_SAMPLE_SIZE),
         fFastMCMaxSpread(DEFAULT_FAST_MC_MAX_SPREAD),
         fFastMCGridSpacing(DEFAULT_FAST_MC_GRID_SPACING),
+        fFastMCFile(""),
         fSensorMessenger(new PixSensorMessenger(this))
 { }
 

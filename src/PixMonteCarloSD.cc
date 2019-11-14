@@ -57,6 +57,8 @@ void PixMonteCarloSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY,
                 newHit->SetN(ePix);
 
                 fHitsCollection->insert(newHit);
+
+                *( fPixElectrons + ix + fRes*iy  ) = 0;
             }
         }
     }

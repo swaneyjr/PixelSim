@@ -102,6 +102,13 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdSampleSize->SetParameterName("N", true);
     cmdSampleSize->AvailableForStates(G4State_PreInit);
     cmdSampleSize->SetDefaultValue(PixDetectorConstruction::DEFAULT_FAST_MC_SAMPLE_SIZE);
+    
+    cmdFromFile = new G4UIcmdWithAString("/sensor/fastMC/file", this);
+    cmdFromFile->SetGuidance("Load diffusion distribution from a file");
+    cmdFromFile->SetGuidance("(calculated from a previous run)");
+    cmdFromFile->SetParameterName("filename", true);
+    cmdFromFile->AvailableForStates(G4State_PreInit);
+    cmdFromFile->SetDefaultValue("");
 
 }
 
@@ -126,6 +133,9 @@ PixSensorMessenger::~PixSensorMessenger()
     delete cmdGridSpacing;
     delete cmdMaxSpread;
     delete cmdSampleSize;
+    delete cmdFromFile;
+
+    delete fFastMCDir;
     
 
 }
@@ -160,7 +170,8 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
         fDC->SetFastMCMaxSpread(cmdMaxSpread->GetNewIntValue(values));
     else if (cmd == cmdSampleSize)
         fDC->SetFastMCSampleSize(cmdSampleSize->GetNewIntValue(values));
-
+    else if (cmd == cmdFromFile)
+        fDC->SetFastMCFile(values);
 
 }
 
@@ -195,6 +206,8 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
         return cmd->ConvertToString(fDC->GetFastMCMaxSpread());
     else if (cmd == cmdSampleSize)
         return cmd->ConvertToString(fDC->GetFastMCSampleSize());
+    else if (cmd == cmdFromFile)
+        return cmd->ConvertToString(fDC->GetFastMCFile());
 
     else return "";
 }

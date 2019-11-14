@@ -59,6 +59,8 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         inline void SetFastMCGridSpacing(G4double val) { fFastMCGridSpacing = val; };
         inline G4double GetFastMCGridSpacing() const { return fFastMCGridSpacing; };
 
+        inline void SetFastMCFile(G4String val) { fFastMCFile = val; };
+        inline G4String GetFastMCFile() const { return fFastMCFile; };
 
         void SetMaxTheta(G4double maxTheta);
         inline G4double GetMaxTheta() const { return fMaxTheta; };
@@ -73,12 +75,12 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         static constexpr G4double DEFAULT_GLASS_Z = 0.0;
 
         static constexpr G4double DEFAULT_PIX_DEPL = 0.8*um;
-        inline static const G4String DEFAULT_DIFFUSION_MODEL = "Isolation";
+        static constexpr const char* DEFAULT_DIFFUSION_MODEL = "Isolation";
         static constexpr G4double DEFAULT_DIFFUSION_LENGTH = 5.0*um;
         static constexpr G4double DEFAULT_DTI_DEPTH = 1.8*um; 
         static constexpr G4double DEFAULT_DIFF_STEP = 50*nm;
 
-        inline static const G4String DEFAULT_FAST_MC_INTERPOLATION = "Off";
+        static constexpr const char* DEFAULT_FAST_MC_INTERPOLATION = "Off";
         static constexpr G4int DEFAULT_FAST_MC_SAMPLE_SIZE = 100000;
         static constexpr G4int DEFAULT_FAST_MC_MAX_SPREAD = 7;
         static constexpr G4double DEFAULT_FAST_MC_GRID_SPACING = 100*nm;
@@ -103,6 +105,7 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         G4int fFastMCSampleSize;
         G4int fFastMCMaxSpread;
         G4double fFastMCGridSpacing;
+        G4String fFastMCFile;
         
         PixSensorMessenger* fSensorMessenger;
 

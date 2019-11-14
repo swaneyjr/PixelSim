@@ -21,16 +21,19 @@ class PixMonteCarlo
 
     private:
         void GenerateGrid();
+        void SaveGrid();
+        void LoadGrid(G4String& fileName);
         const PixCoords FastMC(G4ThreeVector x);
         const PixCoords InterpolateNearest(G4ThreeVector x);
         const PixCoords InterpolateLinear(G4ThreeVector x);
 
-    private:
-        G4double fStepSize;
-        G4double fProbRecombination;
+    private: 
         G4double fLimXY;
         G4double fLimZ;
         G4double fIsoDepth;
+        G4double fDiffLen;
+        G4double fStepSize;
+        G4double fProbRecombination;
 
         G4int fSpacesXY;
         G4int fSpacesZ;

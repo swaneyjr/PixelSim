@@ -47,7 +47,8 @@ class PixSensorMessenger : public G4UImessenger
         G4UIcmdWithAString* cmdInterpolation;
         G4UIcmdWithADoubleAndUnit* cmdGridSpacing;
         G4UIcmdWithAnInteger* cmdMaxSpread;
-        G4UIcmdWithAnInteger* cmdSampleSize; 
+        G4UIcmdWithAnInteger* cmdSampleSize;
+        G4UIcmdWithAString* cmdFromFile;
 
 };
 

@@ -2,38 +2,45 @@
 
 #include "PixDetectorConstruction.hh"
 
+#include "G4Exception.hh"
 #include "G4RandomDirection.hh"
 #include "Randomize.hh"
 
+#include <iostream>
+#include <fstream>
+
+// null result for generating xy coords
 PixCoords PixCoordsNull;
 
 PixMonteCarlo::PixMonteCarlo(PixDetectorConstruction* dc)
 {
 
-    fStepSize = dc->GetDiffStep();
-    G4double diffLen = dc->GetDiffusionLength();
-    fProbRecombination = (fStepSize * fStepSize) / (diffLen * diffLen);
     fLimXY = dc->GetPixXY() / 2;
     fLimZ = dc->GetPixZ() - dc->GetPixDepl();
-    fIsoDepth = dc->GetDTIDepth() - dc->GetPixDepl(); 
+    fIsoDepth = std::max(dc->GetDTIDepth() - dc->GetPixDepl(), 0.); 
+    fDiffLen = dc->GetDiffusionLength();
 
     fInterpolation = dc->GetFastMCInterpolation();
+
+    fStepSize = dc->GetDiffStep();
+    fProbRecombination = (fStepSize * fStepSize) / (fDiffLen * fDiffLen);
+  
     if (fInterpolation != "Off") 
-    {
-        fRes = 2 * dc->GetFastMCMaxSpread() + 1;
-        fMCElectrons = dc->GetFastMCSampleSize();
-
-        G4double nominalGridSpacing = dc->GetFastMCGridSpacing();
-        fSpacesXY = (G4int) (fLimXY / nominalGridSpacing); // endpoints at edge and center
-        fSpacesZ = (G4int) (fLimZ / nominalGridSpacing); // endpoints at edge and depletion
-
-        if (fInterpolation == "Linear")
+    { 
+        G4String gridFile = dc->GetFastMCFile();
+        if (!gridFile.empty())
+            LoadGrid(gridFile);
+        else
         {
-            fSpacesXY++;
-            fSpacesZ++;
-        }
+            fRes = 2 * dc->GetFastMCMaxSpread() + 1;
+            fMCElectrons = dc->GetFastMCSampleSize();
 
-        GenerateGrid();
+            G4double nominalGridSpacing = dc->GetFastMCGridSpacing();
+            fSpacesXY = (G4int) (fLimXY / nominalGridSpacing) + 1; // endpoints at edge and center
+            fSpacesZ = (G4int) (fLimZ / nominalGridSpacing) + 1; // endpoints at edge and depletion
+
+            GenerateGrid();
+        }
     }
 }
 
@@ -125,9 +132,9 @@ const PixCoords PixMonteCarlo::FastMC(G4ThreeVector xi)
 
 const PixCoords PixMonteCarlo::InterpolateNearest(G4ThreeVector xi)
 {
-    G4int xSpace = (G4int) fabs(xi.x() / fLimXY * fSpacesXY);
-    G4int ySpace = (G4int) fabs(xi.y() / fLimXY * fSpacesXY);
-    G4int zSpace = (G4int) ((xi.z() + fLimZ/2) / fLimZ * fSpacesZ);
+    G4int xSpace = (G4int) (fabs(xi.x() / fLimXY * (fSpacesXY-1)) + 0.5);
+    G4int ySpace = (G4int) (fabs(xi.y() / fLimXY * (fSpacesXY-1)) + 0.5);
+    G4int zSpace = (G4int) ((xi.z() + fLimZ/2) / fLimZ * (fSpacesZ-1) + 0.5);
 
     G4int sgnX = copysign(1, xi.x());
     G4int sgnY = copysign(1, xi.y());
@@ -228,7 +235,7 @@ void PixMonteCarlo::GenerateGrid()
     // this will be copied to the instance variable later
     G4int* grid = new G4int[fSpacesXY * fSpacesXY * fSpacesZ * fRes * fRes];
     
-    G4cout << "..........Generating grid..........\n";
+    G4cout << "..........Generating grid.........." << G4endl;
 
     for (G4int ix=0; ix<fSpacesXY; ix++)
     {
@@ -237,20 +244,12 @@ void PixMonteCarlo::GenerateGrid()
         {
             for (G4int iz=0; iz<fSpacesZ; iz++)
             {
-                G4cout << (ix*(ix+1)/2 + iy)*fSpacesZ + iz + 1 << "/" << fSpacesXY*(fSpacesXY+1)/2 * fSpacesZ << "\n";
+                G4cout << (ix*(ix+1)/2 + iy)*fSpacesZ + iz + 1 << "/" << fSpacesXY*(fSpacesXY+1)/2 * fSpacesZ << G4endl;
 
-                G4ThreeVector xlocal;
-                if (fInterpolation == "Linear")
-                    // include the edges
-                    xlocal = G4ThreeVector(
+                G4ThreeVector xlocal = G4ThreeVector(
                             fLimXY * ix/(fSpacesXY-1), 
                             fLimXY * iy/(fSpacesXY-1), 
                             fLimZ * iz/(fSpacesZ-1) - fLimZ/2);
-                else if (fInterpolation == "Nearest")
-                    xlocal = G4ThreeVector(
-                            fLimXY * (ix+0.5)/fSpacesXY,
-                            fLimXY * (iy+0.5)/fSpacesXY,
-                            fLimZ * (iz+0.5)/fSpacesZ - fLimZ/2);
 
                 for (G4int iElectron=0; iElectron<fMCElectrons; iElectron++)
                 {
@@ -270,5 +269,107 @@ void PixMonteCarlo::GenerateGrid()
     }
     
     fMCGrid = grid;
+
+    SaveGrid();
 }
 
+
+void PixMonteCarlo::SaveGrid()
+{
+    std::stringstream fileName;
+    fileName << "diffusion/diff"
+        << "_xy" << (G4int)(2*fLimXY / nm)
+        << "_z" << (G4int)(fLimZ / nm)
+        << "_iso" << (G4int)(fIsoDepth / nm)
+        << "_len" << (G4int)(fDiffLen / nm)
+        << ".dat";
+    
+    std::ofstream outfile;
+    outfile.open(fileName.str(), std::ios::binary);
+
+    if (outfile.is_open() && fMCGrid)
+    {
+        // metadata
+        outfile.write((char*) &fLimXY, 8);
+        outfile.write((char*) &fLimZ, 8);
+        outfile.write((char*) &fIsoDepth, 8);
+        outfile.write((char*) &fDiffLen, 8);
+        outfile.write((char*) &fStepSize, 8);
+        
+        outfile.write((char*) &fSpacesXY, 4);
+        outfile.write((char*) &fSpacesZ, 4);
+        outfile.write((char*) &fRes, 4);
+        outfile.write((char*) &fMCElectrons, 4);
+
+        // now the actual data
+        outfile.write((char*) fMCGrid, 4*fSpacesXY*fSpacesXY*fSpacesZ*fRes*fRes);
+
+    }
+    outfile.close();
+}
+
+
+void PixMonteCarlo::LoadGrid(G4String& fileName) 
+{
+    std::ifstream infile;
+    infile.open(fileName, std::ios::binary);
+
+    if (!infile.is_open())
+        G4Exception(
+                "PixMonteCarlo::LoadGrid()",
+                "DataError",
+                FatalException,
+                "Could not open file.");
+
+    infile.seekg(0, std::ios::end);
+    G4int size = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+
+    char* doubleBuf = new char[40];
+    infile.read(doubleBuf, 40);
+    G4double* metadataDouble = (G4double*) doubleBuf;
+    
+    char* intBuf = new char[16];
+    infile.read(intBuf, 16);
+    G4int* metadataInt = (G4int*) intBuf;
+
+    G4bool validGeometry = 
+        fLimXY == metadataDouble[0]
+        && fLimZ == metadataDouble[1]
+        && fIsoDepth == metadataDouble[2]
+        && fDiffLen == metadataDouble[3];
+
+    G4cout << "XY:  " << fLimXY/um << " um <-> " << metadataDouble[0]/um << " um" << G4endl;
+    G4cout << "Z:   " << fLimZ/um << " um <-> " << metadataDouble[1]/um << " um" << G4endl;
+    G4cout << "DTI: " << fIsoDepth/um << " um <-> " << metadataDouble[2]/um << " um" << G4endl;
+    G4cout << "L:   " << fDiffLen/um << " um <-> " << metadataDouble[3]/um << " um" << G4endl;
+
+    fSpacesXY = metadataInt[0];
+    fSpacesZ = metadataInt[1];
+    fRes = metadataInt[2];
+    fMCElectrons = metadataInt[3];
+
+    delete [] doubleBuf;
+    delete [] intBuf;
+
+    if (!validGeometry) 
+        G4Exception(
+                "PixMonteCarlo::LoadGrid()",
+                "DataError",
+                FatalException,
+                "Diffusion histogram does not agree with detector geometry");
+
+    G4cout << size << ", " << 4*fSpacesXY*fSpacesXY*fSpacesZ*fRes*fRes << G4endl;
+    if (size - 56 != 4*fSpacesXY*fSpacesXY*fSpacesZ*fRes*fRes)
+        G4Exception(
+                "PixMonteCarlo::LoadGrid()",
+                "DataError",
+                FatalException,
+                "Could not interpret file.");
+
+    char* dataBuf = new char[size-56];
+    infile.read(dataBuf, size-56);
+    fMCGrid = (int*) dataBuf;
+
+    infile.close();
+}
