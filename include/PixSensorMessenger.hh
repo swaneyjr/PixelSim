@@ -3,6 +3,7 @@
 
 #include "G4UImessenger.hh"
 #include "G4UIdirectory.hh"
+#include "G4UIcmdWithABool.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
@@ -36,9 +37,10 @@ class PixSensorMessenger : public G4UImessenger
         G4UIdirectory* fReadoutDir;
 
         G4UIcmdWithADoubleAndUnit* cmdPixDepl;
+        G4UIcmdWithADoubleAndUnit* cmdDTIDepth;
+        G4UIcmdWithABool* cmdBackDTI;
         G4UIcmdWithAString* cmdDiffModel;
-        G4UIcmdWithADoubleAndUnit* cmdDiffLen;
-        G4UIcmdWithADoubleAndUnit* cmdDTI;
+        G4UIcmdWithADoubleAndUnit* cmdDiffLen; 
         G4UIcmdWithADoubleAndUnit* cmdDiffStep;
 
         // monte carlo

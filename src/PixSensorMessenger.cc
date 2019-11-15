@@ -14,16 +14,16 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdResXY->SetDefaultValue(PixDetectorConstruction::DEFAULT_RES_XY);
     cmdResXY->AvailableForStates(G4State_PreInit);
 
-    cmdPixXY = new G4UIcmdWithADoubleAndUnit("/sensor/geo/pixSize", this);
+    cmdPixXY = new G4UIcmdWithADoubleAndUnit("/sensor/geo/pixPitch", this);
     cmdPixXY->SetGuidance("x and y dimensions of pixels");
-    cmdPixXY->SetParameterName("pixSize", true);
+    cmdPixXY->SetParameterName("pitch", true);
     cmdPixXY->AvailableForStates(G4State_PreInit);
     cmdPixXY->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_XY);
     cmdPixXY->SetDefaultUnit("um");
 
     cmdPixZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/pixDepth", this);
-    cmdPixZ->SetGuidance("Depth of silicon substrate");
-    cmdPixZ->SetParameterName("pixDepth", true);
+    cmdPixZ->SetGuidance("Depth of active sensor region");
+    cmdPixZ->SetParameterName("depth", true);
     cmdPixZ->AvailableForStates(G4State_PreInit);
     cmdPixZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_Z);
     cmdPixZ->SetDefaultUnit("um");
@@ -46,8 +46,20 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdPixDepl->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_DEPL);
     cmdPixDepl->SetDefaultUnit("um");
 
+    cmdDTIDepth = new G4UIcmdWithADoubleAndUnit("/sensor/readout/dtiDepth", this);
+    cmdDTIDepth->SetGuidance("Depth of Deep Trench Isolation (DTI)");
+    cmdDTIDepth->SetParameterName("depth", true);
+    cmdDTIDepth->AvailableForStates(G4State_PreInit);
+    cmdDTIDepth->SetDefaultValue(PixDetectorConstruction::DEFAULT_DTI_DEPTH);
+    cmdDTIDepth->SetDefaultUnit("um");
+
+    cmdBackDTI = new G4UIcmdWithABool("/sensor/readout/backDTI", this);
+    cmdBackDTI->SetGuidance("Use B-DTI (true) or F-DTI (false)");
+    cmdBackDTI->AvailableForStates(G4State_PreInit);
+    cmdBackDTI->SetDefaultValue(PixDetectorConstruction::DEFAULT_BACK_DTI);
+
     cmdDiffModel = new G4UIcmdWithAString("/sensor/readout/diffusionModel", this);
-    cmdDiffModel->SetGuidance("Model for distribution of electrons created in the substrate.");
+    cmdDiffModel->SetGuidance("Model for distribution of electrons created outside the depletion region.");
     cmdDiffModel->SetCandidates("MC Isolation");
     cmdDiffModel->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFFUSION_MODEL);
 
@@ -56,14 +68,7 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdDiffLen->SetParameterName("L_diff", true);
     cmdDiffLen->AvailableForStates(G4State_PreInit);
     cmdDiffLen->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFFUSION_LENGTH);
-    cmdDiffLen->SetDefaultUnit("um");
-
-    cmdDTI = new G4UIcmdWithADoubleAndUnit("/sensor/readout/dti", this);
-    cmdDTI->SetGuidance("Depth of Deep Trench Isolation (DTI)");
-    cmdDTI->SetParameterName("depth", true);
-    cmdDTI->AvailableForStates(G4State_PreInit);
-    cmdDTI->SetDefaultValue(PixDetectorConstruction::DEFAULT_DTI_DEPTH);
-    cmdDTI->SetDefaultUnit("um");
+    cmdDiffLen->SetDefaultUnit("um"); 
 
     cmdDiffStep = new G4UIcmdWithADoubleAndUnit("/sensor/readout/diffStep", this);
     cmdDiffStep->SetGuidance("Size of steps in Monte Carlo diffusion of charge");
@@ -122,9 +127,10 @@ PixSensorMessenger::~PixSensorMessenger()
     delete fGeometryDir; 
     
     delete cmdPixDepl;
+    delete cmdDTIDepth;
+    delete cmdBackDTI;
     delete cmdDiffModel;
-    delete cmdDiffLen;
-    delete cmdDTI;
+    delete cmdDiffLen; 
     delete cmdDiffStep;
 
     delete fReadoutDir;
@@ -153,12 +159,14 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 
     else if (cmd == cmdPixDepl)
         fDC->SetPixDepl(cmdPixDepl->GetNewDoubleValue(values));
+    else if (cmd == cmdDTIDepth)
+        fDC->SetDTIDepth(cmdDTIDepth->GetNewDoubleValue(values));
+    else if (cmd == cmdBackDTI)
+        fDC->SetBackDTI(cmdBackDTI->GetNewBoolValue(values));
     else if (cmd == cmdDiffModel)
         fDC->SetDiffusionModel(values);
     else if (cmd == cmdDiffLen)
         fDC->SetDiffusionLength(cmdDiffLen->GetNewDoubleValue(values));
-    else if (cmd == cmdDTI)
-        fDC->SetDTIDepth(cmdDiffLen->GetNewDoubleValue(values));
     else if (cmd == cmdDiffStep)
         fDC->SetDiffStep(cmdDiffStep->GetNewDoubleValue(values));
      
@@ -189,12 +197,14 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
 
     else if (cmd == cmdPixDepl)
         return cmd->ConvertToString(fDC->GetPixDepl());
+    else if (cmd == cmdDTIDepth)
+        return cmd->ConvertToString(fDC->GetDTIDepth());
+    else if (cmd == cmdBackDTI)
+        return cmd->ConvertToString(fDC->GetBackDTI());
     else if (cmd == cmdDiffModel)
         return fDC->GetDiffusionModel();
     else if (cmd == cmdDiffLen)
         return cmd->ConvertToString(fDC->GetDiffusionLength());
-    else if (cmd == cmdDTI)
-        return cmd->ConvertToString(fDC->GetDTIDepth());
     else if (cmd == cmdDiffStep)
         return cmd->ConvertToString(fDC->GetDiffStep());
 

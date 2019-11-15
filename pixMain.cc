@@ -16,12 +16,12 @@
 
 void printHelp()
 {
-    G4cout << "Usage: pixelSim [MACFILE [OUTFILE] --alias_1 VALUE_1 ... --alias_n VALUE_N] --help\n\n";
-    G4cout << "NO ARGS:     Run in interactive mode\n";
-    G4cout << "MACFILE:     Execute macro in batch mode\n";
-    G4cout << "OUTFILE:     ROOT output filename\n";
-    G4cout << "--alias:     Substitute {alias_1} for VALUE_1, etc. in MACFILE\n";
-    G4cout << "--help:      Show this message\n";
+    G4cout << "Usage: pixelSim [MACFILE [OUTFILE] --alias_1 VALUE_1 ... --alias_n VALUE_N] --help" << G4endl << G4endl;
+    G4cout << "NO ARGS:     Run in interactive mode" << G4endl;
+    G4cout << "MACFILE:     Execute macro in batch mode" << G4endl;
+    G4cout << "OUTFILE:     ROOT output filename" << G4endl;
+    G4cout << "--alias:     Substitute {alias_1} for VALUE_1, etc. in MACFILE" << G4endl;
+    G4cout << "--help:      Show this message" << G4endl;
 }
 
 int main(int argc, char** argv) 
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
                 outFile = arg;
             else
             {
-                G4cout << "Too many arguments. " << macFile << "\n\n";
+                G4cout << "Too many arguments. " << macFile << G4endl << G4endl;
                 printHelp();
                 return 0;
             }
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
         // handle missing args
         if ( macFile.empty() ) 
         {
-            G4cout << "Invalid syntax.\n\n";
+            G4cout << "Invalid syntax." << G4endl << G4endl;
             printHelp();
             return 0;
         }

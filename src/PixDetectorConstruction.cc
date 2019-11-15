@@ -27,6 +27,8 @@ PixDetectorConstruction::PixDetectorConstruction()
         fPixZ(DEFAULT_PIX_Z), 
         fGlassZ(DEFAULT_GLASS_Z),
         fPixDepl(DEFAULT_PIX_DEPL),
+        fDTIDepth(DEFAULT_DTI_DEPTH),
+        fBackDTI(DEFAULT_BACK_DTI),
         fDiffusionModel(DEFAULT_DIFFUSION_MODEL),
         fDiffusionLength(DEFAULT_DIFFUSION_LENGTH),
         fDiffStep(DEFAULT_DIFF_STEP),
@@ -56,20 +58,20 @@ void PixDetectorConstruction::ConstructSDandField()
     SetSensitiveDetector("Depletion", depletionSD, true);
 
 
-    // add diffusion for substrate
-    G4String substrateSDName = "/Pix/SubstrateSD";
-    G4String substrateHCName = "SubstrateHC";
+    // add diffusion for epitaxial region
+    G4String epiSDName = "/Pix/EpiSD";
+    G4String epiHCName = "EpiHC";
 
-    PixVSensitiveDetector* substrateSD;
+    PixVSensitiveDetector* epiSD;
 
     if (fDiffusionModel == "MC")
-        substrateSD = new PixMonteCarloSD(substrateSDName, substrateHCName, this);
+        epiSD = new PixMonteCarloSD(epiSDName, epiHCName, this);
     else if (fDiffusionModel == "Isolation")
-        substrateSD = new PixIsolationSD(substrateSDName, substrateHCName, this);
+        epiSD = new PixIsolationSD(epiSDName, epiHCName, this);
     else return;
     
-    G4SDManager::GetSDMpointer()->AddNewDetector(substrateSD); 
-    SetSensitiveDetector("Substrate", substrateSD, true);
+    G4SDManager::GetSDMpointer()->AddNewDetector(epiSD); 
+    SetSensitiveDetector("Epi", epiSD, true);
 
 }
 
@@ -101,13 +103,13 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
         new G4LogicalVolume(solidDepl, sensor_mat, "Depletion");
     
     
-    G4Box* solidSubstrate = new G4Box("Substrate",
+    G4Box* solidEpi = new G4Box("Epi",
             0.5*fPixXY,
             0.5*fPixXY,
             0.5*(fPixZ - fPixDepl));
     
-    G4LogicalVolume* logicSubstrate =
-        new G4LogicalVolume(solidSubstrate, sensor_mat, "Substrate");
+    G4LogicalVolume* logicEpi =
+        new G4LogicalVolume(solidEpi, sensor_mat, "Epi");
 
     G4Box* solidRow = new G4Box("Row", 
             0.5*fPixXY*fResXY, 
@@ -151,9 +153,9 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
 
     // now make physical placements
     
-    // put depletion and substrate in each pixel
+    // put depletion and epitaxial regions in each pixel
     new G4PVPlacement(0,
-            G4ThreeVector(0, 0, 0.5*(fPixZ - fPixDepl)),
+            G4ThreeVector(0, 0, -0.5*(fPixZ - fPixDepl)),
             logicDepl,
             "DeplPV",
             logicPix,
@@ -162,9 +164,9 @@ G4VPhysicalVolume* PixDetectorConstruction::Construct()
             checkOverlaps);
 
     new G4PVPlacement(0,
-            G4ThreeVector(0, 0, -0.5*fPixDepl),
-            logicSubstrate,
-            "SubstratePV",
+            G4ThreeVector(0, 0, 0.5*fPixDepl),
+            logicEpi,
+            "EpiPV",
             logicPix,
             false,
             0,

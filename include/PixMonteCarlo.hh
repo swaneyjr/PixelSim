@@ -30,6 +30,7 @@ class PixMonteCarlo
     private: 
         G4double fLimXY;
         G4double fLimZ;
+        G4double fBackDTI;
         G4double fIsoDepth;
         G4double fDiffLen;
         G4double fStepSize;

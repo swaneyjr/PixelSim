@@ -17,7 +17,11 @@ PixMonteCarlo::PixMonteCarlo(PixDetectorConstruction* dc)
 
     fLimXY = dc->GetPixXY() / 2;
     fLimZ = dc->GetPixZ() - dc->GetPixDepl();
-    fIsoDepth = std::max(dc->GetDTIDepth() - dc->GetPixDepl(), 0.); 
+    fBackDTI = dc->GetBackDTI();
+    
+    fIsoDepth = fBackDTI ? dc->GetDTIDepth()
+        : std::max(dc->GetDTIDepth() - dc->GetPixDepl(), 0.); 
+    
     fDiffLen = dc->GetDiffusionLength();
 
     fInterpolation = dc->GetFastMCInterpolation();
@@ -90,7 +94,7 @@ const PixCoords PixMonteCarlo::GenerateHit(G4ThreeVector x0)
         {
             G4int sgn = copysign(1, xf.x());
             G4double xnew = xf.x() - 2*sgn*fLimXY;
-            if (xi.z() > fIsoDepth) 
+            if ((xi.z() < fIsoDepth) == fBackDTI) 
             {
                 dx += sgn; 
                 xf.setX(xnew);   
@@ -103,7 +107,7 @@ const PixCoords PixMonteCarlo::GenerateHit(G4ThreeVector x0)
         {
             G4int sgn = copysign(1, xf.y());
             G4double ynew = xf.y() - 2*sgn*fLimXY;
-            if (xi.z() > fIsoDepth) 
+            if ((xi.z() < fIsoDepth) == fBackDTI) 
             {
                 dy += sgn;
                 xf.setY(ynew);
@@ -276,11 +280,12 @@ void PixMonteCarlo::GenerateGrid()
 
 void PixMonteCarlo::SaveGrid()
 {
+    G4String dtiType = fBackDTI ? "b" : "f";
     std::stringstream fileName;
     fileName << "diffusion/diff"
         << "_xy" << (G4int)(2*fLimXY / nm)
         << "_z" << (G4int)(fLimZ / nm)
-        << "_iso" << (G4int)(fIsoDepth / nm)
+        << "_" << dtiType << "dti" << (G4int)(fIsoDepth / nm)
         << "_len" << (G4int)(fDiffLen / nm)
         << ".dat";
     
@@ -290,6 +295,8 @@ void PixMonteCarlo::SaveGrid()
     if (outfile.is_open() && fMCGrid)
     {
         // metadata
+        outfile.put(fBackDTI?1:0);
+
         outfile.write((char*) &fLimXY, 8);
         outfile.write((char*) &fLimZ, 8);
         outfile.write((char*) &fIsoDepth, 8);
@@ -325,6 +332,10 @@ void PixMonteCarlo::LoadGrid(G4String& fileName)
     G4int size = infile.tellg();
     infile.seekg(0, std::ios::beg);
 
+    char boolBuf;
+    infile.get(boolBuf);
+    G4bool backDTI = (boolBuf == 0);
+
     char* doubleBuf = new char[40];
     infile.read(doubleBuf, 40);
     G4double* metadataDouble = (G4double*) doubleBuf;
@@ -334,7 +345,8 @@ void PixMonteCarlo::LoadGrid(G4String& fileName)
     G4int* metadataInt = (G4int*) intBuf;
 
     G4bool validGeometry = 
-        fLimXY == metadataDouble[0]
+        backDTI == fBackDTI
+        && fLimXY == metadataDouble[0]
         && fLimZ == metadataDouble[1]
         && fIsoDepth == metadataDouble[2]
         && fDiffLen == metadataDouble[3];

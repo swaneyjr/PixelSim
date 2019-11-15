@@ -33,14 +33,17 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         inline void SetPixDepl(G4double val) { fPixDepl = val; }
         inline G4double GetPixDepl() const { return fPixDepl; }
 
+        inline void SetDTIDepth(G4double val) { fDTIDepth = val; };
+        inline G4double GetDTIDepth() const { return fDTIDepth; }; 
+
+        inline void SetBackDTI(G4bool val) { fBackDTI = val; };
+        inline G4bool GetBackDTI() const { return fBackDTI; };
+
         inline void SetDiffusionModel(G4String val) { fDiffusionModel = val; };
         inline G4String GetDiffusionModel() const { return fDiffusionModel; };
 
         inline void SetDiffusionLength(G4double val) { fDiffusionLength = val; };
-        inline G4double GetDiffusionLength() const { return fDiffusionLength; };
-
-        inline void SetDTIDepth(G4double val) { fDTI = val; };
-        inline G4double GetDTIDepth() const { return fDTI; }; 
+        inline G4double GetDiffusionLength() const { return fDiffusionLength; }; 
 
         inline void SetDiffStep(G4double val) { fDiffStep = val; };
         inline G4double GetDiffStep() const { return fDiffStep; };
@@ -75,9 +78,10 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         static constexpr G4double DEFAULT_GLASS_Z = 0.0;
 
         static constexpr G4double DEFAULT_PIX_DEPL = 0.8*um;
+        static constexpr G4double DEFAULT_DTI_DEPTH = 1.8*um; 
+        static constexpr G4bool DEFAULT_BACK_DTI = true;
         static constexpr const char* DEFAULT_DIFFUSION_MODEL = "Isolation";
         static constexpr G4double DEFAULT_DIFFUSION_LENGTH = 5.0*um;
-        static constexpr G4double DEFAULT_DTI_DEPTH = 1.8*um; 
         static constexpr G4double DEFAULT_DIFF_STEP = 50*nm;
 
         static constexpr const char* DEFAULT_FAST_MC_INTERPOLATION = "Off";
@@ -96,9 +100,10 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         G4double fGlassZ;
         
         G4double fPixDepl;
+        G4double fDTIDepth;
+        G4double fBackDTI;
         G4String fDiffusionModel;
-        G4double fDiffusionLength;
-        G4double fDTI;
+        G4double fDiffusionLength; 
         G4double fDiffStep;
 
         G4String fFastMCInterpolation;

@@ -35,18 +35,18 @@ void PixDigitizer::Digitize()
     
     G4DigiManager* digiMan = G4DigiManager::GetDMpointer();
     
-    G4int depletionID = digiMan->GetHitsCollectionID("DepletionHC");
-    G4int substrateID = digiMan->GetHitsCollectionID("SubstrateHC");
+    G4int deplID = digiMan->GetHitsCollectionID("DepletionHC");
+    G4int epiID = digiMan->GetHitsCollectionID("EpiHC");
 
-    PixHitsCollection* depletionHC = (PixHitsCollection*)
-        (digiMan->GetHitsCollection(depletionID));
-    PixHitsCollection* substrateHC = (PixHitsCollection*)
-        (digiMan->GetHitsCollection(substrateID));
+    PixHitsCollection* deplHC = (PixHitsCollection*)
+        (digiMan->GetHitsCollection(deplID));
+    PixHitsCollection* epiHC = (PixHitsCollection*)
+        (digiMan->GetHitsCollection(epiID));
 
 
-    if ( depletionHC && substrateHC ) {
+    if ( deplHC && epiHC ) {
 
-        for (const auto hc : {depletionHC, substrateHC})
+        for (const auto hc : {deplHC, epiHC})
         {
 
             G4int nHits = hc->entries();

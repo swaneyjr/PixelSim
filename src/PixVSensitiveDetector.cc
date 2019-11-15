@@ -32,7 +32,7 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     G4int pixX = h->GetReplicaNumber(1);
     G4int pixY = h->GetReplicaNumber(2);
    
-    // first find coordinates in the substrate volume
+    // first find coordinates in the logical volume
     G4ThreeVector xi = aStep->GetPreStepPoint()->GetPosition();
     G4ThreeVector xf = aStep->GetPostStepPoint()->GetPosition();  
     

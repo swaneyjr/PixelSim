@@ -16,7 +16,7 @@ class PixIsolationSD : public PixVSensitiveDetector
                G4ThreeVector xf);
 
     private:
-        G4double fSubstrateDepth;
+        G4double fEpiDepth;
         G4double fDiffusionLength;
 
 };
