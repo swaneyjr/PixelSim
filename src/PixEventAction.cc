@@ -20,7 +20,7 @@ PixEventAction::~PixEventAction()
 void PixEventAction::BeginOfEventAction(const G4Event* anEvent)
 { 
     G4int evtID = anEvent->GetEventID();
-    std::cout << "Event: " << evtID << "\r";
+    G4cout << "Event: " << evtID << "\r";
 }
 
 void PixEventAction::EndOfEventAction(const G4Event* anEvent)
@@ -46,7 +46,7 @@ void PixEventAction::EndOfEventAction(const G4Event* anEvent)
         }
     }
 
-    if ( dc ) 
+    if ( dc )
         root->AddDigits(dc);
 
     root->WriteEvent();

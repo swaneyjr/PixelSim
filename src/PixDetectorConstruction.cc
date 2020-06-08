@@ -47,7 +47,7 @@ PixDetectorConstruction::~PixDetectorConstruction()
 
 void PixDetectorConstruction::ConstructSDandField()
 {
-     
+         
     // add depletion zone
     G4String depletionSDName = "/Pix/DepletionSD";
     G4String depletionHCName = "DepletionHC";
@@ -72,7 +72,6 @@ void PixDetectorConstruction::ConstructSDandField()
     
     G4SDManager::GetSDMpointer()->AddNewDetector(epiSD); 
     SetSensitiveDetector("Epi", epiSD, true);
-
 }
 
 

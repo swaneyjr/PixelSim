@@ -22,7 +22,8 @@ class PixVSensitiveDetector : public G4VSensitiveDetector
                 G4int pixX, 
                 G4int pixY, 
                 G4ThreeVector xi, 
-                G4ThreeVector xf) = 0;
+                G4ThreeVector xf,
+                G4String pname) = 0;
 
     protected:
         PixHitsCollection* fHitsCollection;

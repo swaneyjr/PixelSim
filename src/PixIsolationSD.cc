@@ -17,7 +17,7 @@ PixIsolationSD::PixIsolationSD(const G4String& name, const G4String& hcName, Pix
 PixIsolationSD::~PixIsolationSD()
 { }
 
-void PixIsolationSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, G4ThreeVector xi, G4ThreeVector xf)
+void PixIsolationSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, G4ThreeVector xi, G4ThreeVector xf, G4String pname)
 {
     // collection efficiency can be reduced to a simple
     // analytical result
@@ -38,6 +38,7 @@ void PixIsolationSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, 
     newHit->SetX(pixX);
     newHit->SetY(pixY);
     newHit->SetN(nCollected);
+    newHit->SetParticleName(pname);
 
     fHitsCollection->insert(newHit);
 }

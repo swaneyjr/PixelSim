@@ -28,9 +28,18 @@ class RootIO
     private:
         G4AnalysisManager* fAnalysisManager;
 
+        // pixel hits
         std::vector<G4int> fX;
         std::vector<G4int> fY;
         std::vector<G4int> fN;
+
+        // total electron deposit by particle type
+        std::vector<G4int> fNProton;
+        std::vector<G4int> fNElectron;
+        std::vector<G4int> fNAlpha;
+        std::vector<G4int> fNPion;
+        std::vector<G4int> fNDeuteron;
+        std::vector<G4int> fNOther;
 
         std::unordered_set<G4int> fParticles;
 };

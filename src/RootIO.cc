@@ -18,9 +18,7 @@ RootIO::~RootIO()
 RootIO* RootIO::GetInstance()
 {
     if (fInstance == nullptr)
-    {
         fInstance = new RootIO();
-    }
     return fInstance;
 }
 
@@ -41,7 +39,14 @@ void RootIO::BeginFile(G4String& filename)
 
     fAnalysisManager->CreateNtupleIColumn("pix_x", fX);
     fAnalysisManager->CreateNtupleIColumn("pix_y", fY);
-    fAnalysisManager->CreateNtupleIColumn("pix_e", fN);
+    fAnalysisManager->CreateNtupleIColumn("n_tot", fN);
+
+    fAnalysisManager->CreateNtupleIColumn("n_proton", fNProton);
+    fAnalysisManager->CreateNtupleIColumn("n_electron", fNElectron);
+    fAnalysisManager->CreateNtupleIColumn("n_alpha", fNAlpha);
+    fAnalysisManager->CreateNtupleIColumn("n_pion", fNPion);
+    fAnalysisManager->CreateNtupleIColumn("n_deuteron", fNDeuteron);
+    fAnalysisManager->CreateNtupleIColumn("n_other", fNOther);
  
     fAnalysisManager->FinishNtuple();
 
@@ -58,11 +63,19 @@ void RootIO::AddDigits(PixDigiCollection* dc)
         fX.push_back(digi->GetX());
         fY.push_back(digi->GetY());
         fN.push_back(digi->GetN());
+
+        fNProton.push_back(digi->GetNProton());
+        fNElectron.push_back(digi->GetNElectron());
+        fNAlpha.push_back(digi->GetNAlpha());
+        fNPion.push_back(digi->GetNPion());
+        fNDeuteron.push_back(digi->GetNDeuteron());
+        fNOther.push_back(digi->GetNOther());
     }
 }
 
 void RootIO::AddPrimary(G4PrimaryParticle* primary)
 {
+    
     const G4ParticleDefinition* pdef = primary->GetParticleDefinition();
     G4int pID = pdef->GetParticleDefinitionID();
     G4String pname = pdef->GetParticleName();
@@ -92,12 +105,20 @@ void RootIO::AddPrimary(G4PrimaryParticle* primary)
 }
 
 void RootIO::WriteEvent()
-{
+{ 
     fAnalysisManager->AddNtupleRow();
 
     fX.clear();
     fY.clear();
     fN.clear();
+    
+    fNProton.clear();
+    fNElectron.clear();
+    fNAlpha.clear();
+    fNPion.clear();
+    fNDeuteron.clear();
+    fNOther.clear();
+
 }
 
 void RootIO::Close()

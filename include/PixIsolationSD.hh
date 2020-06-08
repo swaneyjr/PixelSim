@@ -13,7 +13,8 @@ class PixIsolationSD : public PixVSensitiveDetector
                G4int pixX,
                G4int pixY,
                G4ThreeVector xi, 
-               G4ThreeVector xf);
+               G4ThreeVector xf,
+               G4String pname);
 
     private:
         G4double fEpiDepth;

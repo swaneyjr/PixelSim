@@ -27,10 +27,14 @@ class PixHit : public G4VHit
         void SetN(G4int val) { fN = val; };
         G4int GetN() const { return fN; };
 
+        void SetParticleName(G4String pname) { fParticleName = pname; }
+        G4String GetParticleName() const { return fParticleName; }
+
     private:
         G4int fX;
         G4int fY;
         G4int fN;
+        G4String fParticleName;
 };
 
 typedef G4THitsCollection<PixHit> PixHitsCollection;

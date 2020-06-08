@@ -1,6 +1,7 @@
 #include "PixVSensitiveDetector.hh"
 
 #include "PixDetectorConstruction.hh"
+#include "RootIO.hh"
 
 #include "G4AffineTransform.hh"
 #include "G4Box.hh"
@@ -24,9 +25,14 @@ PixVSensitiveDetector::~PixVSensitiveDetector()
 
 G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
+
+    G4String pname = aStep->GetTrack()
+        ->GetParticleDefinition()
+        ->GetParticleName();
+
     G4double etot = aStep->GetTotalEnergyDeposit();
-    if (etot == 0.0) return false; 
- 
+    if (etot == 0.0) return false;  
+
     const G4VTouchable* h = aStep->GetPreStepPoint()->GetTouchable();
 
     G4int pixX = h->GetReplicaNumber(1);
@@ -45,8 +51,8 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
     // now handle electron collection
     G4int nElectrons = (G4int)(etot/SI_BAND_GAP);
-    CollectElectrons(nElectrons, pixX, pixY, xiLocal, xfLocal);
-
+    CollectElectrons(nElectrons, pixX, pixY, xiLocal, xfLocal, pname); 
+    
     //G4cout << preStep->GetPosition().getZ()/um << " um -> " << postStep->GetPosition().getZ()/um << "um ";
     //G4cout << "LV:" << h->GetVolume()->GetLogicalVolume()->GetName() << "\n";
     //G4cout << "e-:" << etot / (SI_BAND_GAP) << " ";

@@ -44,7 +44,8 @@ def make_plots(tdict, nplots=2, gain=1, white=None, black=0):
 
             pix_x = np.array(evt.pix_x)
             pix_y = np.array(evt.pix_y)
-            pix_e = np.array(evt.pix_e)
+            pix_e = np.maximum(np.array(evt.pix_val) - black, 0) if fname == 'Truth' \
+                    else np.minimum(gain*np.array(evt.pix_e), white-black)
 
             argsort = np.argsort(pix_e)[::-1]
             xmax = pix_x[argsort[0]]
@@ -64,11 +65,11 @@ def make_plots(tdict, nplots=2, gain=1, white=None, black=0):
 
                 
         bins = np.arange(min(white, max(e_max)) + 1)
-        rbins = np.geomspace(.001, 1, 100)
+        rbins = np.geomspace(.01, 1, 100)
 
         for i in range(nplots):
             hist_3x3 = np.histogram(e_3x3[i], bins=bins)[0]
-            hist_r = np.histogram((e_3x3[i]-black)/(e_max-black), bins=rbins)[0]
+            hist_r = np.histogram(e_3x3[i]/e_max), bins=rbins)[0]
         
             axes[i].plot((bins[1:]+bins[:-1])/2, hist_3x3, label=label)
             axes[nplots+i].plot((rbins[1:]+rbins[:-1])/2, hist_r, label=label)
@@ -83,14 +84,21 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser(description='Compute and plot track statistics')
     parser.add_argument('rootfiles', nargs='+', help='.root files with simulation data')
-    parser.add_argument('-n', '--nplots', type=int, default=3, help='Plot the 1st-Nth greatest neighboring pixels')
-    parser.add_argument('-g', '--gain', type=float, default=1, help='ADC counts per electron')
+    parser.add_argument('-n', '--nplots', type=int, default=3, help='Plot the 1st-nth greatest neighboring pixels')
+    parser.add_argument('-g', '--gain', type=float, default=1, help='ADC countns per electron')
     parser.add_argument('-w', '--white', type=int, help='Maximum pixel response value')
     parser.add_argument('-b', '--black', type=int, default=0, help='Black level value')
+    parser.add_argument('--truth', help='.root file with truth data, to be plotted separately')
 
     args = parser.parse_args()
     files = [r.TFile(fname) for fname in args.rootfiles]
     hits = {fname: f.Get('hits') for fname, f in zip(args.rootfiles, files)}
+    if args.truth:
+        ftruth = r.TFile(args.truth)
+        truth = ftruth.Get('hits')
+        hits['Truth'] = truth
 
-    make_plots(hits, nplots=args.nplots, gain=args.gain, white=args.white, black=args.black)
+    make_plots(hits, nplots=args.nplots, white=args.white, black=args.black)
+
+    for f in files: f.Close()
 

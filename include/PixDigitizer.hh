@@ -13,12 +13,19 @@ class PixDigitizer : public G4VDigitizerModule
         virtual ~PixDigitizer();
 
         void Digitize();
+        void Configure(G4int resXY);
 
     private:
-        PixDigiCollection* fDigiCollection;
-        G4int* fPixElectrons;
+        std::vector<G4int> fPixTot;
 
-        G4int fResXY; 
+        std::vector<G4int> fPixProton;
+        std::vector<G4int> fPixElectron;
+        std::vector<G4int> fPixAlpha;
+        std::vector<G4int> fPixPion;
+        std::vector<G4int> fPixDeuteron;
+        std::vector<G4int> fPixOther;
+        
+        PixDigiCollection* fDigiCollection; 
 };
 
 #endif

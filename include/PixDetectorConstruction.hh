@@ -72,7 +72,7 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
     public:
         static constexpr G4double DEFAULT_WORLD_SIZE = 5*mm;
         static constexpr G4double DEFAULT_MAX_THETA = 85*deg;
-        static constexpr G4int DEFAULT_RES_XY = 51;
+        static constexpr G4int DEFAULT_RES_XY = 501;
         static constexpr G4double DEFAULT_PIX_XY = 1.12*um;
         static constexpr G4double DEFAULT_PIX_Z = 2.6*um;
         static constexpr G4double DEFAULT_GLASS_Z = 0.0;

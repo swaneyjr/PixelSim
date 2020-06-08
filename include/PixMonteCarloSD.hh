@@ -15,7 +15,8 @@ class PixMonteCarloSD : public PixVSensitiveDetector
                G4int pixX,
                G4int pixY,
                G4ThreeVector xi, 
-               G4ThreeVector xf);
+               G4ThreeVector xf,
+               G4String pname);
 
     private:
         PixMonteCarlo* fMC;

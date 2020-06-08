@@ -22,7 +22,7 @@ PixMonteCarloSD::~PixMonteCarloSD()
     delete fMC;
 }
 
-void PixMonteCarloSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, G4ThreeVector xi, G4ThreeVector xf)
+void PixMonteCarloSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, G4ThreeVector xi, G4ThreeVector xf, G4String pname)
 {
 
     //G4cout << "electrons: " << nElectrons << "\n";
@@ -55,6 +55,7 @@ void PixMonteCarloSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY,
                 newHit->SetX(ix);
                 newHit->SetY(iy);
                 newHit->SetN(ePix);
+                newHit->SetParticleName(pname);
 
                 fHitsCollection->insert(newHit);
 

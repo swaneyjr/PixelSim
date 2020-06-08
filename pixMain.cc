@@ -33,11 +33,11 @@ int main(int argc, char** argv)
  
     // initialize run
     G4RunManager* runManager = new G4RunManager;
-
+ 
     runManager->SetUserInitialization(new PixDetectorConstruction);
     runManager->SetUserInitialization(new PixPhysicsList);
-    runManager->SetUserInitialization(new PixActionInitialization);
-    
+    runManager->SetUserInitialization(new PixActionInitialization); 
+
     runManager->SetVerboseLevel(2);
 
     RootIO* root = RootIO::GetInstance();
