@@ -8,6 +8,8 @@
 
 #include <unordered_set>
 
+class PixAnalysisMessenger;
+
 class RootIO
 {
     public:
@@ -27,6 +29,7 @@ class RootIO
 
     private:
         G4AnalysisManager* fAnalysisManager;
+        PixAnalysisMessenger* fAnalysisMessenger;
 
         // pixel hits
         std::vector<G4int> fX;
@@ -42,6 +45,12 @@ class RootIO
         std::vector<G4int> fNOther;
 
         std::unordered_set<G4int> fParticles;
+
+        G4int fMinPix;
+
+    public:
+        inline void SetMinPix(G4int val) { fMinPix = val; };
+        inline G4int GetMinPix() const { return fMinPix; };
 };
 
 

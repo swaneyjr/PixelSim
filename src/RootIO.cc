@@ -3,16 +3,20 @@
 #include "G4ParticleDefinition.hh"
 #include "G4SystemOfUnits.hh"
 
+#include "PixAnalysisMessenger.hh"
+
 static RootIO* fInstance = nullptr;
 
 RootIO::RootIO()
     :   fAnalysisManager(G4AnalysisManager::Instance()),
+        fAnalysisMessenger(new PixAnalysisMessenger(this)),
         fParticles()
 { } 
 
 RootIO::~RootIO()
 {
     delete fAnalysisManager;
+    delete fAnalysisMessenger;
 }
 
 RootIO* RootIO::GetInstance()
@@ -54,7 +58,7 @@ void RootIO::BeginFile(G4String& filename)
 
 void RootIO::AddDigits(PixDigiCollection* dc)
 {
-    G4int nDigi = dc->entries();
+    G4int nDigi = dc->entries(); 
 
     for (G4int i=0; i<nDigi; i++)
     {
@@ -106,7 +110,9 @@ void RootIO::AddPrimary(G4PrimaryParticle* primary)
 
 void RootIO::WriteEvent()
 { 
-    fAnalysisManager->AddNtupleRow();
+    
+    if ( (G4int)fX.size() >= fMinPix )
+        fAnalysisManager->AddNtupleRow();
 
     fX.clear();
     fY.clear();
