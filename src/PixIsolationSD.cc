@@ -8,7 +8,7 @@
 #include <math.h>
 
 PixIsolationSD::PixIsolationSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
-    :   PixVSensitiveDetector(name, hcName)
+    :   PixVSensitiveDetector(name, hcName, dc)
 { 
     fDiffusionLength = dc->GetDiffusionLength() / sqrt(3); // correct for 1D 
     fEpiDepth = dc->GetPixZ() - dc->GetPixDepl();
@@ -37,6 +37,8 @@ void PixIsolationSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY, 
         
     newHit->SetX(pixX);
     newHit->SetY(pixY);
+    //std::cout << pname << ": (" << pixX << ", " << pixY << ", " << nCollected << ")\n";
+    if (nCollected < 0) std::cout << "nCollected: " << nCollected << "\n";
     newHit->SetN(nCollected);
     newHit->SetParticleName(pname);
 

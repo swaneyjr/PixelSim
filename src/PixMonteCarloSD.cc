@@ -8,9 +8,10 @@
 
 
 PixMonteCarloSD::PixMonteCarloSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
-    :   PixVSensitiveDetector(name, hcName)
+    :   PixVSensitiveDetector(name, hcName, dc)
 {  
     fRes = dc->GetResXY();
+    fSgn = dc->GetFacingFront() ? 1 : -1;
 
     fPixElectrons = new G4int[fRes*fRes]();
     fMC = new PixMonteCarlo(dc);
@@ -32,9 +33,13 @@ void PixMonteCarloSD::CollectElectrons(G4int nElectrons, G4int pixX, G4int pixY,
         G4double rand = G4UniformRand();
         G4ThreeVector xMC = xi*rand + xf*(1-rand);
 
-        PixCoords dxy = fMC->GenerateHit(xMC);
+	// adjust if the phone is backwards
+	xMC.setZ(xMC.z() * fSgn);
 
-        if (&dxy == &PixCoordsNull) continue;
+        PixCoords dxy = fMC->GenerateHit(xMC);
+	if (&dxy == &PixCoordsNull) continue;
+
+	//G4cout << "(" << dxy.first << ", " << dxy.second << ")" << G4endl;
 
         G4int iPixX = pixX + dxy.first;
         G4int iPixY = pixY + dxy.second;

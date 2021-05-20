@@ -22,6 +22,9 @@ class PixParticleMessenger : public G4UImessenger
         PixPrimaryGenerator* fParticleGun;
         G4UIdirectory* fParticleDir;
 
+	// source type
+	G4UIcmdWithAString* cmdSourceType;
+
         // particle species
         G4UIcmdWithAString* cmdParticle;
 

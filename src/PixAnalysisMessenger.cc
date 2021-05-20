@@ -11,9 +11,8 @@ PixAnalysisMessenger::PixAnalysisMessenger(RootIO* root)
     fROOTDirectory->SetGuidance("ROOT IO options");
 
     cmdMinPix = new G4UIcmdWithAnInteger("/root/minPix", this);
-    cmdMinPix->SetGuidance("Maximum step size inside sensor");
+    cmdMinPix->SetGuidance("Minimum step size inside sensor");
     cmdMinPix->AvailableForStates(G4State_PreInit);
-
 }
 
 PixAnalysisMessenger::~PixAnalysisMessenger()
@@ -27,7 +26,6 @@ void PixAnalysisMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 { 
     if (cmd == cmdMinPix)
         fROOT->SetMinPix(cmdMinPix->GetNewIntValue(values));
-
 }
 
 G4String PixAnalysisMessenger::GetCurrentValue(G4UIcommand* cmd)

@@ -86,7 +86,7 @@ void RootIO::AddPrimary(G4PrimaryParticle* primary)
     G4double ke = primary->GetKineticEnergy();
     const G4ThreeVector pHat = primary->GetMomentumDirection();
 
-    G4double theta = acos(abs(pHat.z()));
+    G4double theta = acos(-pHat.z());
     G4double phi = atan2(pHat.y(), pHat.x());
 
     // fill hist

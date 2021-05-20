@@ -27,7 +27,13 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdPixZ->AvailableForStates(G4State_PreInit);
     cmdPixZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_PIX_Z);
     cmdPixZ->SetDefaultUnit("um");
- 
+
+    cmdFacingFront = new G4UIcmdWithABool("/sensor/geo/facingFront", this);
+    cmdFacingFront->SetGuidance("Set epitaxial region upstream");
+    cmdFacingFront->SetParameterName("facingFront", true);
+    cmdFacingFront->AvailableForStates(G4State_PreInit);
+    cmdFacingFront->SetDefaultValue(true);
+
     cmdGlassZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/glass", this);
     cmdGlassZ->SetGuidance("Thickness of lens");
     cmdGlassZ->SetParameterName("glass", true);
@@ -35,7 +41,53 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdGlassZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_GLASS_Z);
     cmdGlassZ->SetDefaultUnit("mm");
 
-    
+    cmdShieldingZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/shieldZ", this);
+    cmdShieldingZ->SetGuidance("Thickness of external shielding");
+    cmdShieldingZ->SetParameterName("shield", true);
+    cmdShieldingZ->AvailableForStates(G4State_PreInit);
+    cmdShieldingZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_SHIELDING_Z);
+    cmdShieldingZ->SetDefaultUnit("mm");
+
+    cmdShieldingMat = new G4UIcmdWithAString("/sensor/geo/shieldMat", this);
+    cmdShieldingMat->SetGuidance("Shielding material, from G4 NIST database");
+    cmdShieldingMat->SetParameterName("mat", true);
+    cmdShieldingMat->AvailableForStates(G4State_PreInit);
+    cmdShieldingMat->SetDefaultValue(PixDetectorConstruction::DEFAULT_SHIELDING_MAT);
+
+    cmdBackShieldingZ = new G4UIcmdWithADoubleAndUnit("/sensor/geo/backShieldZ", this);
+    cmdBackShieldingZ->SetGuidance("Thickness of shielding for backscattering");
+    cmdBackShieldingZ->SetParameterName("backshield", true);
+    cmdBackShieldingZ->AvailableForStates(G4State_PreInit);
+    cmdBackShieldingZ->SetDefaultValue(PixDetectorConstruction::DEFAULT_BACK_Z);
+    cmdBackShieldingZ->SetDefaultUnit("mm");
+
+    cmdBackShieldingMat = new G4UIcmdWithAString("/sensor/geo/backShieldMat", this);
+    cmdBackShieldingMat->SetGuidance("Backscattering shielding material, from G4 NIST database");
+    cmdBackShieldingMat->SetParameterName("backmat", true);
+    cmdBackShieldingMat->AvailableForStates(G4State_PreInit);
+    cmdBackShieldingMat->SetDefaultValue(PixDetectorConstruction::DEFAULT_BACK_MAT);
+
+    cmdShieldingGap = new G4UIcmdWithADoubleAndUnit("/sensor/geo/shieldGap", this);
+    cmdShieldingGap->SetGuidance("Gap between glass and shielding surfaces");
+    cmdShieldingGap->SetParameterName("gap", true);
+    cmdShieldingGap->AvailableForStates(G4State_PreInit);
+    cmdShieldingGap->SetDefaultValue(PixDetectorConstruction::DEFAULT_SHIELDING_GAP);
+    cmdShieldingGap->SetDefaultUnit("mm");
+
+    cmdShieldingGapMat = new G4UIcmdWithAString("/sensor/geo/shieldGapMat", this);
+    cmdShieldingGapMat->SetGuidance("Shielding material, from G4 NIST database");
+    cmdShieldingGapMat->SetParameterName("mat", true);
+    cmdShieldingGapMat->AvailableForStates(G4State_PreInit);
+    cmdShieldingGapMat->SetDefaultValue(PixDetectorConstruction::DEFAULT_SHIELDING_GAP_MAT);
+
+    cmdVoltage = new G4UIcmdWithADoubleAndUnit("/sensor/geo/voltage", this);
+    cmdVoltage->SetGuidance("Voltage inside pixel");
+    cmdVoltage->SetParameterName("voltage", true);
+    cmdVoltage->AvailableForStates(G4State_PreInit);
+    cmdVoltage->SetDefaultValue(PixDetectorConstruction::DEFAULT_VOLTAGE);
+    cmdVoltage->SetDefaultUnit("volt");
+
+
     fReadoutDir = new G4UIdirectory("/sensor/readout/");
     fReadoutDir->SetGuidance("Pixel readout parameters");
 
@@ -77,6 +129,18 @@ PixSensorMessenger::PixSensorMessenger(PixDetectorConstruction* dc)
     cmdDiffStep->SetDefaultValue(PixDetectorConstruction::DEFAULT_DIFF_STEP);
     cmdDiffStep->SetDefaultUnit("nm");
 
+    cmdIonizationEnergy = new G4UIcmdWithADoubleAndUnit("/sensor/readout/ionizationEnergy", this);
+    cmdIonizationEnergy->SetGuidance("Approximate deposited energy per electron-hole pair created");
+    cmdIonizationEnergy->AvailableForStates(G4State_PreInit, G4State_Idle);
+    cmdIonizationEnergy->SetParameterName("eIon", true);
+    cmdIonizationEnergy->SetDefaultValue(PixDetectorConstruction::DEFAULT_IONIZATION_ENERGY);
+    cmdIonizationEnergy->SetDefaultUnit("eV");
+
+    cmdIonizationModel = new G4UIcmdWithAString("/sensor/readout/ionizationModel", this);
+    cmdIonizationModel->SetGuidance("Model for converting deposited energy to electron-hole pairs");
+    cmdIonizationModel->AvailableForStates(G4State_PreInit, G4State_Idle);
+    cmdIonizationModel->SetDefaultValue(PixDetectorConstruction::DEFAULT_IONIZATION_MODEL);
+    cmdIonizationModel->SetCandidates("Scale Binom");
 
     fFastMCDir = new G4UIdirectory("/sensor/fastMC/");
     fFastMCDir->SetGuidance("Parameters for pre-calculating the distribution of diffused charge.");
@@ -123,6 +187,13 @@ PixSensorMessenger::~PixSensorMessenger()
     delete cmdPixXY;
     delete cmdPixZ; 
     delete cmdGlassZ;
+    delete cmdShieldingZ;
+    delete cmdShieldingMat;
+    delete cmdBackShieldingZ;
+    delete cmdBackShieldingMat;
+    delete cmdShieldingGap;
+    delete cmdShieldingGapMat;
+    delete cmdVoltage;
 
     delete fGeometryDir; 
     
@@ -132,6 +203,8 @@ PixSensorMessenger::~PixSensorMessenger()
     delete cmdDiffModel;
     delete cmdDiffLen; 
     delete cmdDiffStep;
+    delete cmdIonizationEnergy;
+    delete cmdIonizationModel;
 
     delete fReadoutDir;
 
@@ -154,8 +227,25 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
         fDC->SetPixXY(cmdPixXY->GetNewDoubleValue(values));
     else if (cmd == cmdPixZ)
         fDC->SetPixZ(cmdPixZ->GetNewDoubleValue(values));
+    else if (cmd == cmdFacingFront)
+	fDC->SetFacingFront(cmdFacingFront->GetNewBoolValue(values));
     else if (cmd == cmdGlassZ)
         fDC->SetGlassZ(cmdGlassZ->GetNewDoubleValue(values));
+    else if (cmd == cmdShieldingZ)
+	fDC->SetShieldingZ(cmdShieldingZ->GetNewDoubleValue(values));
+    else if (cmd == cmdShieldingMat)
+	fDC->SetShieldingMat(values);
+    else if (cmd == cmdBackShieldingZ)
+	fDC->SetBackShieldingZ(cmdBackShieldingZ->GetNewDoubleValue(values));
+    else if (cmd == cmdBackShieldingMat)
+	fDC->SetBackShieldingMat(values);
+    else if (cmd == cmdShieldingGap)
+	fDC->SetShieldingGap(cmdShieldingGap->GetNewDoubleValue(values));
+    else if (cmd == cmdShieldingGapMat)
+	fDC->SetShieldingGapMat(values);
+    
+    else if (cmd == cmdVoltage)
+	fDC->SetVoltage(cmdVoltage->GetNewDoubleValue(values));
 
     else if (cmd == cmdPixDepl)
         fDC->SetPixDepl(cmdPixDepl->GetNewDoubleValue(values));
@@ -169,7 +259,11 @@ void PixSensorMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
         fDC->SetDiffusionLength(cmdDiffLen->GetNewDoubleValue(values));
     else if (cmd == cmdDiffStep)
         fDC->SetDiffStep(cmdDiffStep->GetNewDoubleValue(values));
-     
+    else if (cmd == cmdIonizationEnergy)
+	fDC->SetIonizationEnergy(cmdIonizationEnergy->GetNewDoubleValue(values));
+    else if (cmd == cmdIonizationModel)
+	fDC->SetIonizationModel(values); 
+
     else if (cmd == cmdInterpolation)
         fDC->SetFastMCInterpolation(values);
     else if (cmd == cmdGridSpacing)
@@ -192,8 +286,25 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
         return cmd->ConvertToString(fDC->GetPixXY());
     else if (cmd == cmdPixZ)
         return cmd->ConvertToString(fDC->GetPixZ());
+    else if (cmd == cmdFacingFront)
+	return cmd->ConvertToString(fDC->GetFacingFront());
     else if (cmd == cmdGlassZ)
         return cmd->ConvertToString(fDC->GetGlassZ());
+    else if (cmd == cmdShieldingZ)
+	return cmd->ConvertToString(fDC->GetShieldingZ());
+    else if (cmd == cmdShieldingMat)
+	return cmd->ConvertToString(fDC->GetShieldingMat());
+    else if (cmd == cmdBackShieldingZ)
+	return cmd->ConvertToString(fDC->GetBackShieldingZ());
+    else if (cmd == cmdBackShieldingMat)
+	return cmd->ConvertToString(fDC->GetBackShieldingMat());
+    else if (cmd == cmdShieldingGap)
+	return cmd->ConvertToString(fDC->GetShieldingGap());
+    else if (cmd == cmdShieldingGapMat)
+	return cmd->ConvertToString(fDC->GetShieldingGapMat());
+
+    else if (cmd == cmdVoltage)
+	return cmd->ConvertToString(fDC->GetVoltage());
 
     else if (cmd == cmdPixDepl)
         return cmd->ConvertToString(fDC->GetPixDepl());
@@ -207,6 +318,10 @@ G4String PixSensorMessenger::GetCurrentValue(G4UIcommand* cmd)
         return cmd->ConvertToString(fDC->GetDiffusionLength());
     else if (cmd == cmdDiffStep)
         return cmd->ConvertToString(fDC->GetDiffStep());
+    else if (cmd == cmdIonizationEnergy)
+	return cmd->ConvertToString(fDC->GetIonizationEnergy());
+    else if (cmd == cmdIonizationModel)
+	return fDC->GetIonizationModel();
 
     else if (cmd == cmdInterpolation)
         return fDC->GetFastMCInterpolation();

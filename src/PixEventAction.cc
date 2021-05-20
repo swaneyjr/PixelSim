@@ -20,7 +20,7 @@ PixEventAction::~PixEventAction()
 void PixEventAction::BeginOfEventAction(const G4Event* anEvent)
 { 
     G4int evtID = anEvent->GetEventID();
-    G4cout << "Event: " << evtID << "\r";
+    G4cout << "Event: " << evtID << "\r" << std::flush;
 }
 
 void PixEventAction::EndOfEventAction(const G4Event* anEvent)

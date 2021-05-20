@@ -4,120 +4,155 @@ import ROOT as r
 import numpy as np
 import matplotlib.pyplot as plt
 
-def make_plots(tdict, gain=1, white=None, black=0, thresh=0, truth=None):
+SIM_COLZ = ['k', 'dimgray', 'darkgray', 'gray']
+DATA_COLZ = ['royalblue', 'crimson', 'gold']
 
-    if white is None: white = np.inf
+def get_total_events(f):
+    n_evt = 0
 
-    xunit = r'$N_e$' if gain==1 else 'ADC - {}'.format(black)
+    f.cd('primaries')
+    for k in r.gDirectory.GetListOfKeys():
+        h = f.Get('primaries/' + k.GetName())
+        n_evt += h.GetEntries()
+
+    return n_evt
+
+def sim_eff(f):
+    n_evt_tot = get_total_events(f)
+    t = f.Get('hits')
+
+    edep_max = []
+
+    n_evt = t.GetEntries()
+    for evt in t:
+        if len(evt.n_tot):
+            edep_max.append(max(evt.n_tot))
+        else:
+            edep_max.append(0)
     
-    plt.figure(figsize=(16, 12))
-    plt.tight_layout()
+    max_bins = np.arange(max(edep_max)+2)
+    max_hist = np.histogram(edep_max, bins=max_bins)[0]
 
-    ax1 = plt.subplot(221)
-    plt.title('Max pixel')
-    plt.xlabel(xunit)
-    plt.ylabel('Freq')
+    # add any events skipped by "minPix" filter
+    max_hist[0] += n_evt_tot - n_evt
 
-    ax2 = plt.subplot(222)
-    plt.title('Total')
-    plt.xlabel(xunit)
-    plt.ylabel('Freq')
+    return max_bins[:-1], 1 - np.cumsum(max_hist/max_hist.sum())
 
-    ax3 = plt.subplot(223)
-    plt.title('Max pixel')
-    plt.xlabel(xunit + ' thresh')
-    plt.ylabel('Eff')
 
-    ax4 = plt.subplot(224)
-    plt.title('Total')
-    plt.xlabel(xunit + ' thresh')
-    plt.ylabel('Eff') 
+def plot_sim(ax, f, label, f_weighting=None, acc_ratio=1, scale=None, scale_label=None, color='k'):
+    
+    electrons, eff = sim_eff(f)
+    
+    if f_weighting:
+        from SRH_weight import apply_weights
+        weight = np.load(f_weighting)
+        eff = apply_weights(electrons, eff, weight.f.p, weight.f.coeffs, 
+                weight.f.gain_err, fast=weight.f.fast)
+        weight.close()
 
-    for fname, t in tdict.items():
+    eff *= acc_ratio
 
-        label = fname[:-5].replace('_', ' ')
+    # val >= thresh
+    # also don't show zero bin
+    ax.plot(electrons[1:-1], eff[1:-1], c=color, ls='-', label=label)
 
-        edep_max = []
-        edep_tot = []
+    if scale:
+        ax.plot(electrons[1:-1], eff[1:-1]*scale, c=color, ls='--', label=scale_label)
 
-        for evt in t:
-            if len(evt.pix_e):
-                gain_adj = np.array([min(int(gain*e), white) for e in evt.pix_e])
-                edep_max.append(max(gain_adj))
-                edep_tot.append(sum(gain_adj[gain_adj > thresh]))
-            else:
-                edep_max.append(0)
-                edep_tot.append(0)
-        
-        max_bins = np.arange(min(white-black, max(edep_max))+1)
-        tot_bins = np.arange(max(edep_tot)+1)
+def plot_data(ax, data, label, c=None):
+    n_e = data['electrons']
+    eff = data['eff']
+    err = data['err']
 
-        max_hist = np.histogram(edep_max, bins=max_bins)[0]
-        tot_hist = np.histogram(edep_tot, bins=tot_bins)[0]
+    print(label)
+    #hist = -np.diff(np.hstack([eff_max, 0]))
+    #err_hist = np.sqrt(err[:-1]**2 + err[1:]**2)
 
-        max_hist /= max_hist.sum()
-        tot_hist /= tot_hist.sum()
-
-        max_eff = 1 - np.cumsum(max_hist)
-        tot_eff = 1 - np.cumsum(tot_hist)
-
-        # do not display zero bin
-        max_bins = max_bins[1:-1]
-        tot_bins = tot_bins[1:-1]
-
-        ax1.plot(max_bins, max_hist[1:], label=label)
-        ax2.plot(tot_bins, tot_hist[1:], label=label)
-        # val != thresh
-        ax3.plot(max_bins, max_eff[1:], label=label)
-        ax4.plot(tot_bins, tot_eff[1:], label=label)
-
-    if truth:
-        eff_max = truth['eff_max']
-        eff_tot = truth['eff_tot']
-        err_eff_max = truth['err_max']
-        err_eff_tot = truth['err_tot']
-
-        hist_max = -np.diff(np.hstack([eff_max, 0]))
-        hist_tot = -np.diff(np.hstack([eff_tot, 0]))
-        err_hist_max = np.sqrt(eff_err_max[:-1]**2 + eff_err_max[1:]**2)
-        err_hist_tot = np.sqrt(eff_err_tot[:-1]**2 + eff_err_tot[1:]**2)
-
-        ax1.errorbar(truth['thresh_max'], hist_max, err_hist_max, ls='', label='Truth')
-        ax2.errorbar(truth['thresh_tot'], hist_tot, err_hist_tot, ls='', label='Truth')
-        ax3.errorbar(truth['thresh_max'], eff_max, err_eff_max, ls='', label='Truth')
-        ax4.errorbar(truth['thresh_tot'], eff_tot, err_eff_tot, ls='', label='Truth')
-
-    for ax in (ax1, ax2, ax3, ax4):
-        ax.xaxis.set_label_coords(.95, -0.1)
-        ax.semilogx()
-        ax.legend()
-
-    plt.show()
+    xmin, xmax = ax.get_xlim()
+    ax.plot(n_e, eff, label=label, c=c)
+    ax.fill_between(n_e, eff-err, eff+err, color=c, alpha=0.2, edgecolor=None)
+    ax.set_xlim(max(1, min(xmin, n_e.min()/1.5)), max(xmax, n_e.max()*1.5))
 
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
     parser = ArgumentParser(description='Calculate deposited energy and efficiency curves')
     parser.add_argument('rootfiles', nargs='+', help='.root file with simulation data')
-    parser.add_argument('-g', '--gain', type=float, default=1, help='ADC counts per electron')
-    parser.add_argument('-w', '--white', type=float, help='Maximum pixel response value')
-    parser.add_argument('-b', '--black', type=float, default=0, help='Black level value')
-    parser.add_argument('-t', '--thresh', type=int, default=0, help='Threshold for counting towards sum of pixel values')
-    parser.add_argument('--truth', help='.root file with truth data, to be plotted separately')
-    
+    parser.add_argument('--sim_label', nargs='+', default=[], help='Labels for simulation .root files')
+    parser.add_argument('--acc_ratio', type=float, default=[], nargs='+', help='Multiplier for efficiency values')
+    parser.add_argument('--data_corr', type=float, help='Presumed relative offset due to uncertainty in activity')
+    parser.add_argument('--scale_all', type=float, help='Add second axis with scaled values')
+    parser.add_argument('--scale_label', default='Scaled', help='Label for scaled axis')
+    parser.add_argument('--weighting', help='Weighting .npz file from SRH_weight.py')
+    parser.add_argument('--data', nargs='+', default=[], help='.root file(s) with experimental data, to be plotted separately')
+    parser.add_argument('--data_label', nargs='+', default=[], help='Labels for data .npz files')
+    parser.add_argument('--xlim', nargs=2, type=float)
+    parser.add_argument('--ylim', nargs=2, type=float)
+    parser.add_argument('-A', '--use_acceptance', action='store_true', help='y label is total acceptance A epsilon')
+    parser.add_argument('--title')
+    parser.add_argument('--small', action='store_true', help='Generate small plot')
+
     args = parser.parse_args()
 
-    files = [r.TFile(fname) for fname in args.rootfiles]
-    hits = {fname: f.Get('hits') for fname, f in zip(args.rootfiles, files)}
-    
-    if args.truth:
-        ftruth = r.TFile(args.truth)
-        truth = ftruth.Get('hits')
+    figsize = (3.2, 3.2) if args.small else (4, 4)
+    plt.figure(figsize=figsize, tight_layout=True)
+
+    ax = plt.gca()
+
+    # start with a minimal range
+    if args.data:
+        ax.set_xlim(100,101)
+
+    for i,f in enumerate(args.data):
+        label = args.data_label[i] if i < len(args.data_label) else None
+        data = np.load(f)
+        plot_data(ax, data, label, c=DATA_COLZ[i])
+
+    for i,fname in enumerate(args.rootfiles):
+        label = args.sim_label[i] if i < len(args.sim_label) \
+                else fname.split('/')[-1][:-5].replace('_', ' ')
+
+        acc = args.acc_ratio[i] if i < len(args.acc_ratio) else 1
+
+        f = r.TFile(fname)        
+        color = DATA_COLZ[i] if not args.data else SIM_COLZ[i]
+        
+        scale = args.scale_all
+        scale_label = label + ' ({})'.format(args.scale_label)
+        if args.data_corr:
+            scale = 1 + args.data_corr
+            scale_label = '{:+.1f}% adjustment'.format(100*corr)
+
+        plot_sim(ax, f, label, args.weighting, acc, scale=scale, 
+                scale_label=scale_label, color=color)
+
+        f.Close() 
+
+
+    #ax.xaxis.set_label_coords(.95, -0.1) 
+
+    ax.loglog()
+    ax.legend()
+
+    ax.set_title(args.title)
+    ax.set_xlabel('Threshold [$e^-$]')
+    if args.use_acceptance:
+        ax.set_ylabel(r'$A\epsilon$ [$\mathrm{m}^2$]')
     else:
-        truth = None
+        ax.set_ylabel('Efficiency')
 
-    make_plots(hits, gain=args.gain, white=args.white, black=args.black, truth=truth, thresh=thresh)
+    if args.xlim:
+        ax.set_xlim(*args.xlim)
+    if args.ylim:
+        ax.set_ylim(*args.ylim)
 
-    for f in files: f.Close()
+    #if args.scale_all:
+    #    ax_scale = ax.twinx()
+    #    ax_scale.set_ylabel(args.scale_label)
+    #    scale_lim = args.scale_all * np.array(ax.get_ylim())
+    #    ax_scale.set_ylim(*scale_lim)
+    #    ax_scale.loglog()
+
+    plt.show()
 
     

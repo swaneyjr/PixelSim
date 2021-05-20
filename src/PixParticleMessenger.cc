@@ -2,6 +2,7 @@
 #include "PixDetectorConstruction.hh"
 #include "PixPrimaryGenerator.hh"
 #include "PixAngDistribution.hh"
+#include "PixEneDistribution.hh"
 
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
@@ -13,7 +14,14 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
         fParticleGun(pg)
 { 
     fParticleDir = new G4UIdirectory("/source/");
-    
+   
+    cmdSourceType = new G4UIcmdWithAString("/source/type", this);
+    cmdSourceType->AvailableForStates(G4State_PreInit, G4State_Idle);
+    cmdSourceType->SetParameterName("type", true);
+    cmdSourceType->SetGuidance("target: aim trajectories from plane towards central pixel; point: generate from point source; diffuse: generate from surface");
+    cmdSourceType->SetCandidates("target point diffuse");
+    cmdSourceType->SetDefaultValue("target");
+
     cmdParticle = new G4UIcmdWithAString("/source/particle", this);
     cmdParticle->AvailableForStates(G4State_PreInit, G4State_Idle);
     cmdParticle->SetParameterName("name", true, true);
@@ -56,7 +64,7 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
     cmdMaxTheta->SetGuidance("Maximum angle of incidence allowed (determines world size)");
     cmdMaxTheta->SetParameterName("theta", true);
     cmdMaxTheta->AvailableForStates(G4State_PreInit);
-    cmdMaxTheta->SetDefaultValue(PixDetectorConstruction::DEFAULT_MAX_THETA);
+    cmdMaxTheta->SetDefaultValue(80*deg);
     cmdMaxTheta->SetDefaultUnit("deg");
 
     // energy
@@ -84,6 +92,7 @@ PixParticleMessenger::PixParticleMessenger(PixPrimaryGenerator* pg)
 
 PixParticleMessenger::~PixParticleMessenger()
 {
+    delete cmdSourceType;
     delete cmdParticle;
     delete cmdAngIso;
     delete cmdAngGauss;
@@ -100,8 +109,11 @@ PixParticleMessenger::~PixParticleMessenger()
 
 void PixParticleMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 { 
-    
-    if (cmd == cmdParticle)
+    if (cmd == cmdSourceType)
+    {
+	fParticleGun->SetSourceType(values);
+    } 
+    else if (cmd == cmdParticle)
     {
         G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
         G4ParticleDefinition* pd = particleTable->FindParticle(values);
@@ -130,12 +142,8 @@ void PixParticleMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
         fParticleGun->GetAngDist()
             ->SetAngDistType("cosmic");
     else if (cmd == cmdMaxTheta) 
-    {
-        G4RunManager* runMan = G4RunManager::GetRunManager();
-        PixDetectorConstruction* dc = (PixDetectorConstruction*)
-            runMan->GetUserDetectorConstruction();
-        dc->SetMaxTheta(cmdMaxTheta->GetNewDoubleValue(values));
-    }
+        fParticleGun->GetAngDist()
+	    ->SetMaxTheta(cmdMaxTheta->GetNewDoubleValue(values));
     else if (cmd == cmdEneMean)
     {
         fParticleGun->GetEneDist()
@@ -163,6 +171,8 @@ void PixParticleMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 
 G4String PixParticleMessenger::GetCurrentValue(G4UIcommand* cmd)
 { 
+    if (cmd == cmdSourceType)
+	return fParticleGun->GetSourceType();
     if (cmd == cmdParticle)
         return fParticleGun->GetParticleDefinition()->GetParticleName();
     else if (cmd == cmdAngIso)
@@ -172,12 +182,7 @@ G4String PixParticleMessenger::GetCurrentValue(G4UIcommand* cmd)
     else if (cmd == cmdAngCosmic)
         return (fParticleGun->GetAngDist()->GetDistType() == "cosmic") ? "true" : "false";
     else if (cmd == cmdMaxTheta) 
-    {
-        G4RunManager* runMan = G4RunManager::GetRunManager();
-        PixDetectorConstruction* dc = (PixDetectorConstruction*)
-            runMan->GetUserDetectorConstruction();
-        return cmd->ConvertToString(dc->GetMaxTheta());
-    }
+        return cmd->ConvertToString(fParticleGun->GetAngDist()->GetMaxTheta());
 
     else if (cmd == cmdEneMean)
         return cmd->ConvertToString(fParticleGun->GetEneDist()->GetMonoEnergy());

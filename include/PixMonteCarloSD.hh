@@ -23,6 +23,7 @@ class PixMonteCarloSD : public PixVSensitiveDetector
         G4int* fPixElectrons;
 
         G4int fRes;
+	G4int fSgn;
 
 
 

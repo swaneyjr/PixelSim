@@ -5,13 +5,14 @@
 #include "G4SystemOfUnits.hh"
 
 #include "PixHit.hh"
+#include "PixIonization.hh"
 
 class PixDetectorConstruction;
 
 class PixVSensitiveDetector : public G4VSensitiveDetector
 {
     public:
-        PixVSensitiveDetector(const G4String& name, const G4String& hcName);
+        PixVSensitiveDetector(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc);
         virtual ~PixVSensitiveDetector();
 
         virtual void Initialize(G4HCofThisEvent* hitCollection);
@@ -29,7 +30,9 @@ class PixVSensitiveDetector : public G4VSensitiveDetector
         PixHitsCollection* fHitsCollection;
 
     private:
-        static constexpr G4double SI_BAND_GAP = 1.12*eV;
+        PixIonization* fIonization;
+	G4ThreeVector fxf;
+	G4double fELeftover;
 
 };
 

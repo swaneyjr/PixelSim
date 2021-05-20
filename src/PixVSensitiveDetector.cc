@@ -13,15 +13,19 @@
 
 #include <math.h>
 
-PixVSensitiveDetector::PixVSensitiveDetector(const G4String& name, const G4String& hcName)
+PixVSensitiveDetector::PixVSensitiveDetector(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc)
     :   G4VSensitiveDetector(name),
         fHitsCollection(nullptr)
 {
     collectionName.insert(hcName);
+    fIonization = new PixIonization(dc);
+    fELeftover = 0;
 }
 
 PixVSensitiveDetector::~PixVSensitiveDetector()
-{ }
+{ 
+    delete fIonization;
+}
 
 G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 {
@@ -32,7 +36,7 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
 
     G4double etot = aStep->GetTotalEnergyDeposit();
     if (etot == 0.0) return false;  
-
+    
     const G4VTouchable* h = aStep->GetPreStepPoint()->GetTouchable();
 
     G4int pixX = h->GetReplicaNumber(1);
@@ -40,8 +44,15 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
    
     // first find coordinates in the logical volume
     G4ThreeVector xi = aStep->GetPreStepPoint()->GetPosition();
-    G4ThreeVector xf = aStep->GetPostStepPoint()->GetPosition();  
-    
+    G4ThreeVector xf = aStep->GetPostStepPoint()->GetPosition(); 
+
+    // get leftover energy from last step
+    if (xi == fxf) {
+        etot += fELeftover;	
+    }
+    fxf = xf;
+    fELeftover = 0;
+
     const G4AffineTransform* localTransform =
         h->GetHistory()->GetPtrTopTransform();
 
@@ -50,7 +61,8 @@ G4bool PixVSensitiveDetector::ProcessHits(G4Step* aStep, G4TouchableHistory*)
     G4ThreeVector xfLocal = localTransform->TransformPoint(xf); 
 
     // now handle electron collection
-    G4int nElectrons = (G4int)(etot/SI_BAND_GAP);
+    G4int nElectrons = fIonization->Ionize(etot, &fELeftover);
+    //G4cout << "E: " << etot/eV << " -> e-: " << nElectrons << "\n";
     CollectElectrons(nElectrons, pixX, pixY, xiLocal, xfLocal, pname); 
     
     //G4cout << preStep->GetPosition().getZ()/um << " um -> " << postStep->GetPosition().getZ()/um << "um ";

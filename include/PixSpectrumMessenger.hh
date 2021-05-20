@@ -6,6 +6,7 @@
 #include "G4UIcmdWithAString.hh"
 #include "G4UIcmdWithAnInteger.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWithABool.hh"
 
 #include <vector>
 
@@ -27,11 +28,13 @@ class PixSpectrumMessenger : public G4UImessenger
         G4UIdirectory* fSpectrumDir;
 
         G4UIcmdWithAString* cmdSpectrumPath;
+	G4UIcmdWithABool* cmdDiscrete;
         G4UIcmdWithAnInteger* cmdResTot;
         G4UIcmdWithAnInteger* cmdRunN;
         G4UIcmdWithADoubleAndUnit* cmdRunT;
 
         G4String fSpectrumPath;
+	G4bool fDiscrete;
         G4int fResTot;
 
 };

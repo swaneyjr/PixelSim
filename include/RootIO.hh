@@ -51,6 +51,7 @@ class RootIO
     public:
         inline void SetMinPix(G4int val) { fMinPix = val; };
         inline G4int GetMinPix() const { return fMinPix; };
+
 };
 
 

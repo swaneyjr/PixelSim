@@ -3,6 +3,8 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
+#include <math.h>
+
 PixAngDistribution::PixAngDistribution()
     :   G4SPSAngDistribution(),
         fCosmic(false)
@@ -50,29 +52,10 @@ void PixAngDistribution::GenerateCosmicFlux(G4ParticleMomentum& momentum)
     
     // get normalized theta pdf
     G4double maxTheta = GetMaxTheta();
-    G4double normalization = maxTheta + sin(2*maxTheta) / 2;
+    G4double normalization = pow(cos(maxTheta), 4);
 
-
-    G4double rand = normalization * G4UniformRand();
-
-    // initial guess
-    G4double theta = rand / (pi / 2);
-
-    while (true) 
-    { 
-        // function to find root
-        G4double f0 = theta + sin(2*theta) / 2 - rand;
-
-        if (fabs(f0) < THETA_THRESH) break;
-    
-        // derivatives
-        G4double f1 = 1 + cos(2*theta);
-        G4double f2 = -2 * sin(2*theta);
-
-        // halley's method
-        theta -= 2*f0*f1 / (2*f1*f1 - f0*f2);
-    } 
-
+    G4double rand = (1-normalization) * G4UniformRand();
+    G4double theta = acos(pow(rand + normalization, 0.25));
 
     G4double sinTheta = sin(theta);
     G4double cosTheta = cos(theta);

@@ -2,6 +2,8 @@
 #define PixDetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
+#include "G4FieldManager.hh"
+#include "G4Material.hh"
 #include "G4SystemOfUnits.hh"
 
 class PixSensorMessenger;
@@ -15,6 +17,10 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         virtual G4VPhysicalVolume* Construct();
         virtual void ConstructSDandField();
 
+	G4double GetWorldXY();
+
+    public:
+
         // geometry
         inline void SetResXY(G4double val) { fResXY = val; }
         inline G4int GetResXY() const { return fResXY; }
@@ -24,10 +30,34 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
 
         inline void SetPixZ(G4double val) { fPixZ = val; }
         inline G4double GetPixZ() const { return fPixZ; }
- 
+
+	inline void SetFacingFront(G4bool val) { fFacingFront = val; }
+	inline G4bool GetFacingFront() const { return fFacingFront; }
+
         inline void SetGlassZ(G4double val) { fGlassZ = val; }
         inline G4double GetGlassZ() const { return fGlassZ; }
 
+	inline void SetShieldingZ(G4double val) { fShieldingZ = val; }
+	inline G4double GetShieldingZ() const { return fShieldingZ; }
+
+	inline void SetShieldingMat(G4String val) { fShieldingMat = val; }
+	inline G4String GetShieldingMat() const { return fShieldingMat; }
+	
+	inline void SetBackShieldingZ(G4double val) { fBackShieldingZ = val; }
+	inline G4double GetBackShieldingZ() const { return fBackShieldingZ; }
+
+	inline void SetBackShieldingMat(G4String val) { fBackShieldingMat = val; }
+	inline G4String GetBackShieldingMat() const { return fBackShieldingMat; }
+	
+	inline void SetShieldingGap(G4double val) { fShieldingGap = val; }
+	inline G4double GetShieldingGap() const { return fShieldingGap; }
+
+	inline void SetShieldingGapMat(G4String val) { fShieldingGapMat = val; }
+	inline G4String GetShieldingGapMat() const { return fShieldingGapMat; }
+
+
+	inline void SetVoltage(G4double val) { fVoltage = val; }
+	inline G4double GetVoltage() const { return fVoltage; }
 
         // readout
         inline void SetPixDepl(G4double val) { fPixDepl = val; }
@@ -44,9 +74,13 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
 
         inline void SetDiffusionLength(G4double val) { fDiffusionLength = val; };
         inline G4double GetDiffusionLength() const { return fDiffusionLength; }; 
-
         inline void SetDiffStep(G4double val) { fDiffStep = val; };
         inline G4double GetDiffStep() const { return fDiffStep; };
+
+	inline void SetIonizationEnergy(G4double val) { fIonizationEnergy = val; };
+	inline G4double GetIonizationEnergy() const { return fIonizationEnergy; };
+	inline void SetIonizationModel(G4String val) { fIonizationModel = val; };
+	inline G4String GetIonizationModel() const { return fIonizationModel; };
 
 
         // Monte Carlo interpolation
@@ -65,17 +99,24 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         inline void SetFastMCFile(G4String val) { fFastMCFile = val; };
         inline G4String GetFastMCFile() const { return fFastMCFile; };
 
-        void SetMaxTheta(G4double maxTheta);
-        inline G4double GetMaxTheta() const { return fMaxTheta; };
-
+    private:
+	G4Material* GetMaterial(G4String mat);
 
     public:
-        static constexpr G4double DEFAULT_WORLD_SIZE = 10*mm;
-        static constexpr G4double DEFAULT_MAX_THETA = 85*deg;
+        static constexpr G4double DEFAULT_WORLD_SIZE = 20*cm;
+
         static constexpr G4int DEFAULT_RES_XY = 501;
         static constexpr G4double DEFAULT_PIX_XY = 1.12*um;
         static constexpr G4double DEFAULT_PIX_Z = 2.6*um;
         static constexpr G4double DEFAULT_GLASS_Z = 0.0;
+	static constexpr G4double DEFAULT_SHIELDING_Z = 0.0;
+	static constexpr const char* DEFAULT_SHIELDING_MAT = "G4_AIR";
+	static constexpr G4double DEFAULT_BACK_Z = 0.0;
+	static constexpr const char* DEFAULT_BACK_MAT = "G4_AIR";
+	static constexpr G4double DEFAULT_SHIELDING_GAP = 0.0;
+	static constexpr const char* DEFAULT_SHIELDING_GAP_MAT = "G4_AIR";
+
+	static constexpr G4double DEFAULT_VOLTAGE = 2*volt;
 
         static constexpr G4double DEFAULT_PIX_DEPL = 0.8*um;
         static constexpr G4double DEFAULT_DTI_DEPTH = 1.8*um; 
@@ -83,6 +124,8 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         static constexpr const char* DEFAULT_DIFFUSION_MODEL = "Isolation";
         static constexpr G4double DEFAULT_DIFFUSION_LENGTH = 5.0*um;
         static constexpr G4double DEFAULT_DIFF_STEP = 50*nm;
+	static constexpr G4double DEFAULT_IONIZATION_ENERGY=3.6*eV;
+	static constexpr const char* DEFAULT_IONIZATION_MODEL = "Scale";
 
         static constexpr const char* DEFAULT_FAST_MC_INTERPOLATION = "Off";
         static constexpr G4int DEFAULT_FAST_MC_SAMPLE_SIZE = 100000;
@@ -91,13 +134,19 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
 
                 
     private:
-        G4double fWorldSize;
-        G4double fMaxTheta;
-
         G4int fResXY;
         G4double fPixXY;
         G4double fPixZ;
+	G4bool fFacingFront;
         G4double fGlassZ;
+	G4double fShieldingZ;
+	G4String fShieldingMat;
+	G4double fBackShieldingZ;
+	G4String fBackShieldingMat;
+	G4double fShieldingGap;
+	G4String fShieldingGapMat;
+
+	G4double fVoltage;
         
         G4double fPixDepl;
         G4double fDTIDepth;
@@ -105,6 +154,8 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         G4String fDiffusionModel;
         G4double fDiffusionLength; 
         G4double fDiffStep;
+	G4double fIonizationEnergy;
+	G4String fIonizationModel;
 
         G4String fFastMCInterpolation;
         G4int fFastMCSampleSize;
@@ -112,7 +163,8 @@ class PixDetectorConstruction: public G4VUserDetectorConstruction
         G4double fFastMCGridSpacing;
         G4String fFastMCFile;
         
-        PixSensorMessenger* fSensorMessenger;
+        G4FieldManager* fPixFieldManager;
+	PixSensorMessenger* fSensorMessenger;
 
 };
 

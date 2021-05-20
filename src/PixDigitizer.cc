@@ -95,6 +95,9 @@ void PixDigitizer::Digitize()
 
                 G4int index = (rangeX * y + x);
 
+		if (n < 0) {
+		    std::cout << "n: " << n << "\n";
+		}
                 fPixTot[index] += n;
                 
                 if (pname == "proton")

@@ -1,5 +1,5 @@
 #include "PixDetectorConstruction.hh"
-#include "PixPhysicsList.hh"
+#include "PixModularPhysicsList.hh"
 #include "PixActionInitialization.hh"
 
 #include "PixSpectrumMessenger.hh"
@@ -27,6 +27,15 @@ void printHelp()
 int main(int argc, char** argv) 
 {
  
+    // set random seed
+    long seeds[2];
+    time_t systime = time(NULL);
+    seeds[0] = (long) systime;
+    seeds[1] = (long) (systime*G4UniformRand());
+    G4Random::setTheSeeds(seeds);
+    CLHEP::HepRandom::setTheSeeds(seeds);
+    G4Random::setTheSeeds(seeds);
+
     G4UImanager* UImanager = G4UImanager::GetUIpointer();
      
     PixSpectrumMessenger* specMessenger = new PixSpectrumMessenger;
@@ -34,9 +43,9 @@ int main(int argc, char** argv)
     // initialize run
     G4RunManager* runManager = new G4RunManager;
  
-    runManager->SetUserInitialization(new PixDetectorConstruction);
-    runManager->SetUserInitialization(new PixPhysicsList);
+    runManager->SetUserInitialization(new PixModularPhysicsList);
     runManager->SetUserInitialization(new PixActionInitialization); 
+    runManager->SetUserInitialization(new PixDetectorConstruction);
 
     runManager->SetVerboseLevel(2);
 

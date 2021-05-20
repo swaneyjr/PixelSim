@@ -2,6 +2,7 @@
 #include "PixDetectorConstruction.hh"
 #include "PixPrimaryGeneratorAction.hh"
 #include "PixPrimaryGenerator.hh"
+#include "PixEneDistribution.hh"
 
 #include "G4RunManager.hh"
 #include "G4ParticleDefinition.hh"
@@ -11,6 +12,7 @@
 
 PixSpectrumMessenger::PixSpectrumMessenger()
     :   fSpectrumPath("spectra/0"),
+	fDiscrete(false),
         fResTot(1)
 {
     fSpectrumDir = new G4UIdirectory("/spectrum/");
@@ -21,8 +23,13 @@ PixSpectrumMessenger::PixSpectrumMessenger()
     cmdSpectrumPath->AvailableForStates(G4State_PreInit, G4State_Idle);
     cmdSpectrumPath->SetParameterName("path", true, true);
 
+    cmdDiscrete = new G4UIcmdWithABool("/spectrum/discrete", this);
+    cmdDiscrete->SetGuidance("Interpret data files as discrete energy levels");
+    cmdDiscrete->AvailableForStates(G4State_PreInit, G4State_Idle);
+    cmdDiscrete->SetParameterName("discrete", false);
+
     cmdResTot = new G4UIcmdWithAnInteger("/spectrum/npix", this);
-    cmdResTot->SetGuidance("For using /spectrum/runT, the area over which to calculate total flux, inunits of pixels.");
+    cmdResTot->SetGuidance("For using /spectrum/runT, the area over which to calculate total flux, in units of pixels.");
     cmdResTot->SetGuidance("default: 1");
     cmdResTot->AvailableForStates(G4State_PreInit, G4State_Idle);
     cmdResTot->SetParameterName("npix", true);
@@ -55,6 +62,8 @@ void PixSpectrumMessenger::SetNewValue(G4UIcommand* cmd, G4String values)
 {
     if (cmd == cmdSpectrumPath)
         fSpectrumPath = values;
+    else if (cmd == cmdDiscrete)
+	fDiscrete = cmdDiscrete->GetNewBoolValue(values);
     else if (cmd == cmdResTot)
         fResTot = cmdResTot->GetNewIntValue(values);
     else if (cmd == cmdRunN)
@@ -108,8 +117,12 @@ void PixSpectrumMessenger::RunSpectrum(G4double val, G4bool tVal)
                 G4double flux = std::stod(data_pt(i+1, data_pt.length()-(i+1)))
                     / (MeV * s * cm2);
       
-                *(fluxes+p) += (flux+lastFlux)/2 * (energy-lastEnergy);
-      
+                if (fDiscrete) {
+		    *(fluxes+p) += flux;
+		} else {
+		    *(fluxes+p) += (flux+lastFlux)/2 * (energy-lastEnergy);
+		}
+
                 lastEnergy = energy;
                 lastFlux = flux;
             }
@@ -141,10 +154,15 @@ void PixSpectrumMessenger::RunSpectrum(G4double val, G4bool tVal)
         ppg->SetParticleDefinition(pd);
 
         G4String histName = fSpectrumPath + "/" + particles[i] + ".dat";
-        ppg->GetEneDist()->SetEnergyDisType("Arb");
-        ppg->GetEneDist()->ArbEnergyHistoFile(histName);
-        ppg->GetEneDist()->ArbInterpolate("Exp");
-
+	PixEneDistribution* ene = ppg->GetEneDist();
+	if (fDiscrete) {
+	    ene->SetEnergyDisType("Discrete");
+	    ene->DiscreteEnergyHistoFile(histName);
+	} else {
+            ene->SetEnergyDisType("Arb");
+            ene->ArbEnergyHistoFile(histName);
+            ene->ArbInterpolate("Exp");
+	} 
         G4int np;
         if (tVal)
         {

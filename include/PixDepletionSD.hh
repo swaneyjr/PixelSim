@@ -3,10 +3,12 @@
 
 #include "PixVSensitiveDetector.hh"
 
+#include "PixDetectorConstruction.hh"
+
 class PixDepletionSD : public PixVSensitiveDetector
 {
     public:
-        PixDepletionSD(const G4String& name, const G4String& hcName);
+        PixDepletionSD(const G4String& name, const G4String& hcName, PixDetectorConstruction* dc);
         virtual ~PixDepletionSD();
 
         void CollectElectrons(G4int nElectrons,

@@ -1,6 +1,7 @@
 #ifndef PixMonteCarlo_h
 #define PixMonteCarlo_h 1
 
+#include "PixDetectorConstruction.hh"
 #include "G4ThreeVector.hh"
 #include "globals.hh"
 
@@ -21,7 +22,8 @@ class PixMonteCarlo
 
     private:
         void GenerateGrid();
-        void SaveGrid();
+        void SaveGrid(G4int* grid);
+	void AccumulateGrid(G4int* grid);
         void LoadGrid(G4String& fileName);
         const PixCoords FastMC(G4ThreeVector x);
         const PixCoords InterpolateNearest(G4ThreeVector x);
@@ -40,7 +42,8 @@ class PixMonteCarlo
         G4int fSpacesZ;
         G4int fRes;
         G4int fMCElectrons;
-        G4String fInterpolation;
+        
+       	G4String fInterpolation;
 
         G4int* fMCGrid;
 

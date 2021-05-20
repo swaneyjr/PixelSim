@@ -30,8 +30,17 @@ class PixSensorMessenger : public G4UImessenger
 
         G4UIcmdWithAnInteger* cmdResXY;
         G4UIcmdWithADoubleAndUnit* cmdPixXY;
-        G4UIcmdWithADoubleAndUnit* cmdPixZ; 
+        G4UIcmdWithADoubleAndUnit* cmdPixZ;
+        G4UIcmdWithABool* cmdFacingFront;	
         G4UIcmdWithADoubleAndUnit* cmdGlassZ;
+	G4UIcmdWithADoubleAndUnit* cmdShieldingZ;
+	G4UIcmdWithAString* cmdShieldingMat;
+	G4UIcmdWithADoubleAndUnit* cmdBackShieldingZ;
+	G4UIcmdWithAString* cmdBackShieldingMat;
+	G4UIcmdWithADoubleAndUnit* cmdShieldingGap;
+	G4UIcmdWithAString* cmdShieldingGapMat;
+
+	G4UIcmdWithADoubleAndUnit* cmdVoltage;
 
         // readout
         G4UIdirectory* fReadoutDir;
@@ -42,6 +51,8 @@ class PixSensorMessenger : public G4UImessenger
         G4UIcmdWithAString* cmdDiffModel;
         G4UIcmdWithADoubleAndUnit* cmdDiffLen; 
         G4UIcmdWithADoubleAndUnit* cmdDiffStep;
+	G4UIcmdWithADoubleAndUnit* cmdIonizationEnergy;
+	G4UIcmdWithAString* cmdIonizationModel;
 
         // monte carlo
         G4UIdirectory* fFastMCDir;
